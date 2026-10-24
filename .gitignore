@@ -1,0 +1,8 @@
+
+obj/
+bin/
+lib/
+data/
+results/
+release/
+*.zip
