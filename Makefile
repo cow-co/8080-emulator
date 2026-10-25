@@ -26,7 +26,6 @@ PASSED = `grep -s ":PASS" $(RESULTS_DIR)/*.txt | wc -l`
 
 package: $(EXE) | release
 	mv $(EXE) release/
-	cp -r data release/
 	zip -r 8080-emulator.zip release/
 
 build: $(EXE)
