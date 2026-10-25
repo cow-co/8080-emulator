@@ -6,3 +6,4 @@ data/
 results/
 release/
 *.zip
+*.asm

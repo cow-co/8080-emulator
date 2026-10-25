@@ -5,12 +5,16 @@
 #include <stdint.h>
 
 typedef struct {
-    const char code;
     const char assembly[64];
     const uint8_t opbytes;
 } Opcode;
 
 extern const Opcode opcodes[256];
-void disassemble(const FILE* fp);
+extern const size_t countOpcodes;
+
+/**
+ * NOTE: Call_er_ closes the file pointer
+ */
+void disassemble(FILE* fp);
 
 #endif
