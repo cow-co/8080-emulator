@@ -17,15 +17,29 @@ typedef struct {
     uint8_t E; 
     uint8_t H; 
     uint8_t L;
-    uint8_t M;
+    uint8_t A;
 
     uint8_t flags;
 
     // In the 8080, the processor can address 65,535 8-bit bytes of read-write memory
-    uint8_t readWriteMemory[65535];
+    uint8_t readWriteMemory[UINT16_MAX];
 } State;
 
 extern State processorState;
-void setFlag(const size_t flagIndex);
+void reset_state();
+/**
+ * There are five flags, so the `flagIndex` here is pinned at 4 (0-based).
+ * ie. if `flagIndex` is passed as `6`, then the value which is actually used is `4`.
+ */
+void set_flag(size_t flagIndex);
+/**
+ * There are five flags, so the `flagIndex` here is pinned at 4 (0-based).
+ * ie. if `flagIndex` is passed as `6`, then the value which is actually used is `4`.
+ */
+void reset_flag(size_t flagIndex);
+const uint16_t B_register_pair();
+const uint16_t D_register_pair();
+const uint16_t H_register_pair();
+const uint16_t psw();
 
 #endif
