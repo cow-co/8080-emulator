@@ -110,4 +110,11 @@ void dcx_d();
 void dcx_h();
 void dcx_sp();
 
+void cma();
+
+void stax_b();
+void stax_d();
+void ldax_b();
+void ldax_d();
+
 #endif
