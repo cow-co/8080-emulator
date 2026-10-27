@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef struct {
     // We use uint16_t instead of two unsigned chars because we need exactly 16 bits, rather than *at least* 16 bits
@@ -23,10 +24,17 @@ typedef struct {
 
     // In the 8080, the processor can address 65,535 8-bit bytes of read-write memory
     uint8_t readWriteMemory[UINT16_MAX];
+    // In the 8080, the processor can address 65,535 8-bit bytes of read-only memory (program counter is 16 bits)
+    uint8_t readOnlyMemory[UINT16_MAX];
 } State;
 
 extern State processorState;
 void reset_state();
+/**
+ * Call_er_ closes the file pointer!
+ */
+const size_t load_rom_from_file(FILE* fp);
+
 /**
  * There are five flags, so the `flagIndex` here is pinned at 4 (0-based).
  * ie. if `flagIndex` is passed as `6`, then the value which is actually used is `4`.

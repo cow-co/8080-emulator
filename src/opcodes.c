@@ -29,6 +29,46 @@ void lxi_sp() {
     processorState.programCounter += 3;
 }
 
+void mvi(uint8_t* const reg) {
+    // This should be loading in an immediate from the actual code - NOT memory; 
+    // will need to work out how to make the program code accessible to the instructions
+    *reg = processorState.readWriteMemory[processorState.programCounter + 1];
+    processorState.programCounter += 2;
+}
+
+void mvi_b() {
+    mvi(&processorState.B);
+}
+
+void mvi_c() {
+    mvi(&processorState.C);
+}
+
+void mvi_d() {
+    mvi(&processorState.D);
+}
+
+void mvi_e() {
+    mvi(&processorState.E);
+}
+
+void mvi_h() {
+    mvi(&processorState.H);
+}
+
+void mvi_l() {
+    mvi(&processorState.L);
+}
+
+void mvi_a() {
+    mvi(&processorState.A);
+}
+
+void mvi_m() {
+    // TODO Implement
+    processorState.programCounter += 2;
+}
+
 void inr(uint8_t* const reg) {
     *reg += 1;
     ++processorState.programCounter;

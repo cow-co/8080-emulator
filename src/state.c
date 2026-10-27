@@ -17,6 +17,17 @@ void reset_state() {
     memset(&processorState.readWriteMemory, 0, sizeof(processorState.readWriteMemory) / sizeof(uint8_t));
 }
 
+const size_t load_rom_from_file(FILE* fp) {
+    fseek(fp, 0L, SEEK_END);
+    size_t fileSize = ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
+    if (fileSize > UINT16_MAX) {
+        fileSize = UINT16_MAX;
+    }
+    fread(&processorState.readOnlyMemory, fileSize, 1, fp);
+    return fileSize;
+}
+
 void set_flag(size_t flagIndex) {
     if (flagIndex >= 5) {
         flagIndex = 4;

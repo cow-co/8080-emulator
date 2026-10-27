@@ -9,6 +9,15 @@ void lxi_d();
 void lxi_h();
 void lxi_sp();
 
+void mvi_b();
+void mvi_c();
+void mvi_d();
+void mvi_e();
+void mvi_h();
+void mvi_l();
+void mvi_a();
+void mvi_m();
+
 void inr_b();
 void inr_c();
 void inr_d();

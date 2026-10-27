@@ -1,5 +1,6 @@
 #include "disassembler.h"
 #include "opcodes.h"
+#include "state.h"
 #include <stdlib.h>
 
 // We use "#0x.." for immediates, and "$...." for addresses
@@ -10,7 +11,7 @@ const Opcode opcodes[256] = {
     {.assembly = "INX       B",             .opbytes = 1, .opFn = &inx_b},
     {.assembly = "INR       B",             .opbytes = 1, .opFn = &inr_b},
     {.assembly = "DCR       B",             .opbytes = 1, .opFn = &dcr_b},
-    {.assembly = "MVI       B, #0x%02x",    .opbytes = 2},
+    {.assembly = "MVI       B, #0x%02x",    .opbytes = 2, .opFn = &mvi_b},
     {.assembly = "RLC",                     .opbytes = 1},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
     {.assembly = "DAD       B",             .opbytes = 1},
@@ -18,7 +19,7 @@ const Opcode opcodes[256] = {
     {.assembly = "DCX       B",             .opbytes = 1, .opFn = &dcx_b},
     {.assembly = "INR       C",             .opbytes = 1, .opFn = &inr_c},
     {.assembly = "DCR       C",             .opbytes = 1, .opFn = &dcr_c},
-    {.assembly = "MVI       C, #0x%02x",    .opbytes = 2},
+    {.assembly = "MVI       C, #0x%02x",    .opbytes = 2, .opFn = &mvi_c},
     {.assembly = "RRC",                     .opbytes = 1},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
     {.assembly = "LXI       D, $%02x%02x",  .opbytes = 3, .opFn = &lxi_d},
@@ -26,7 +27,7 @@ const Opcode opcodes[256] = {
     {.assembly = "INX       D",             .opbytes = 1, .opFn = &inx_d},
     {.assembly = "INR       D",             .opbytes = 1, .opFn = &inr_d},
     {.assembly = "DCR       D",             .opbytes = 1, .opFn = &dcr_d},
-    {.assembly = "MVI       D, #0x%02x",    .opbytes = 2},
+    {.assembly = "MVI       D, #0x%02x",    .opbytes = 2, .opFn = &mvi_d},
     {.assembly = "RAL",                     .opbytes = 1},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
     {.assembly = "DAD       D",             .opbytes = 1},
@@ -34,7 +35,7 @@ const Opcode opcodes[256] = {
     {.assembly = "DCX       D",             .opbytes = 1, .opFn = &dcx_d},
     {.assembly = "INR       E",             .opbytes = 1, .opFn = &inr_e},
     {.assembly = "DCR       E",             .opbytes = 1, .opFn = &dcr_e},
-    {.assembly = "MVI       E, #0x%02x",    .opbytes = 2},
+    {.assembly = "MVI       E, #0x%02x",    .opbytes = 2, .opFn = &mvi_e},
     {.assembly = "RAR",                     .opbytes = 1},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
     {.assembly = "LXI       H, $%02x%02x",  .opbytes = 3, .opFn = &lxi_h},
@@ -42,7 +43,7 @@ const Opcode opcodes[256] = {
     {.assembly = "INX       H",             .opbytes = 1, .opFn = &inx_h},
     {.assembly = "INR       H",             .opbytes = 1, .opFn = &inr_h},
     {.assembly = "DCR       H",             .opbytes = 1, .opFn = &dcr_h},
-    {.assembly = "MVI       H, #0x%02x",    .opbytes = 2},
+    {.assembly = "MVI       H, #0x%02x",    .opbytes = 2, .opFn = &mvi_h},
     {.assembly = "DAA",                     .opbytes = 1},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
     {.assembly = "DAD       H",             .opbytes = 1},
@@ -50,7 +51,7 @@ const Opcode opcodes[256] = {
     {.assembly = "DCX       H",             .opbytes = 1, .opFn = &dcx_h},
     {.assembly = "INR       L",             .opbytes = 1, .opFn = &inr_l},
     {.assembly = "DCR       L",             .opbytes = 1, .opFn = &dcr_l},
-    {.assembly = "MVI       L, #0x%02x",    .opbytes = 2},
+    {.assembly = "MVI       L, #0x%02x",    .opbytes = 2, .opFn = &mvi_l},
     {.assembly = "CMA",                     .opbytes = 1},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
     {.assembly = "LXI       SP, $%02x%02x", .opbytes = 3, .opFn = &lxi_sp},
@@ -58,7 +59,7 @@ const Opcode opcodes[256] = {
     {.assembly = "INX       SP",            .opbytes = 1, .opFn = &inx_sp},
     {.assembly = "INR       M",             .opbytes = 1, .opFn = &inr_m},
     {.assembly = "DCR       M",             .opbytes = 1, .opFn = &dcr_m},
-    {.assembly = "MVI       M, #0x%02x",    .opbytes = 2},
+    {.assembly = "MVI       M, #0x%02x",    .opbytes = 2, .opFn = &mvi_m},
     {.assembly = "STC",                     .opbytes = 1},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
     {.assembly = "DAD       SP",            .opbytes = 1},
@@ -66,7 +67,7 @@ const Opcode opcodes[256] = {
     {.assembly = "DCX       SP",            .opbytes = 1, .opFn = &dcx_sp},
     {.assembly = "INR       A",             .opbytes = 1, .opFn = &inr_a},
     {.assembly = "DCR       A",             .opbytes = 1, .opFn = &dcr_a},
-    {.assembly = "MVI       A, #0x%02x",    .opbytes = 2},
+    {.assembly = "MVI       A, #0x%02x",    .opbytes = 2, .opFn = &mvi_a},
     {.assembly = "CMC",                     .opbytes = 1},
     {.assembly = "MOV       B, B",          .opbytes = 1},
     {.assembly = "MOV       B, C",          .opbytes = 1},
@@ -264,18 +265,18 @@ const Opcode opcodes[256] = {
 
 const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
 
-int disassemble_8080op(const unsigned char* const buffer, size_t offset) {
+int disassemble_8080op() {
     // We can use the code itself as an index into the opcodes array since the opcodes are
     // basically just densely packed into contiguous integers (and unoccupied values can be represented 
     // by no-ops anyway)
-    const unsigned char* const code = &buffer[offset];
+    const unsigned char* const code = &processorState.readOnlyMemory[processorState.programCounter];
     if (*code >= countOpcodes) {
         printf("ERROR: Could not find opcode %c!\n", *code);
         return -1;
     }
     const Opcode* const opcode = &opcodes[*code];
     if (opcode != nullptr) {
-        printf("%04zx ", offset);
+        printf("%04hu ", processorState.programCounter);
         if (opcode->opbytes == 2) {
             printf(opcode->assembly, code[1]);
         } else if (opcode->opbytes == 3) {
@@ -291,22 +292,15 @@ int disassemble_8080op(const unsigned char* const buffer, size_t offset) {
 }
 
 void disassemble(FILE *fp) {
-    fseek(fp, 0L, SEEK_END);
-    size_t fileSize = ftell(fp);
-    fseek(fp, 0L, SEEK_SET);
-    unsigned char* buffer = malloc(fileSize);
-    fread(buffer, fileSize, 1, fp);
+    reset_state();
+    const size_t fileSize = load_rom_from_file(fp);
 
-    size_t offset = 0;
-
-    while (offset < fileSize) {
-        int bytes = disassemble_8080op(buffer, offset);
+    while (processorState.programCounter < fileSize) {
+        int bytes = disassemble_8080op();
         if (bytes < 0) {
             break;
         } else {
-            offset += bytes;
+            processorState.programCounter += bytes;
         }
     }
-
-    free(buffer);
 }
