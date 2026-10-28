@@ -36,12 +36,12 @@ const size_t load_rom_from_file(FILE* fp) {
     return fileSize;
 }
 
-uint8_t psw() {
-    uint8_t psw = 2;
-    psw |= (uint8_t)processorState.carry;
-    psw |= (uint8_t)processorState.parity << 2;
-    psw |= (uint8_t)processorState.auxCarry << 4;
-    psw |= (uint8_t)processorState.zero << 6;
-    psw |= (uint8_t)processorState.sign << 7;
-    return psw;
+uint8_t flags() {
+    uint8_t flags = 2;
+    flags |= (uint8_t)processorState.carry;
+    flags |= (uint8_t)processorState.parity << 2;
+    flags |= (uint8_t)processorState.auxCarry << 4;
+    flags |= (uint8_t)processorState.zero << 6;
+    flags |= (uint8_t)processorState.sign << 7;
+    return flags;
 }

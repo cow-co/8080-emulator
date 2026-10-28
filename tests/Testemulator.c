@@ -5,29 +5,29 @@
 void setUp() {}
 void tearDown() {}
 
-void test_psw() {
+void test_flags() {
     reset_state();
-    TEST_ASSERT_EQUAL_UINT8(2, psw());
+    TEST_ASSERT_EQUAL_UINT8(2, flags());
 
     reset_state();
     processorState.carry = true;
-    TEST_ASSERT_EQUAL_UINT8(3, psw());
+    TEST_ASSERT_EQUAL_UINT8(3, flags());
 
     reset_state();
     processorState.parity = true;
-    TEST_ASSERT_EQUAL_UINT8(6, psw());
+    TEST_ASSERT_EQUAL_UINT8(6, flags());
 
     reset_state();
     processorState.auxCarry = true;
-    TEST_ASSERT_EQUAL_UINT8(18, psw());
+    TEST_ASSERT_EQUAL_UINT8(18, flags());
 
     reset_state();
     processorState.zero = true;
-    TEST_ASSERT_EQUAL_UINT8(66, psw());
+    TEST_ASSERT_EQUAL_UINT8(66, flags());
 
     reset_state();
     processorState.sign = true;
-    TEST_ASSERT_EQUAL_UINT8(130, psw());
+    TEST_ASSERT_EQUAL_UINT8(130, flags());
 
     reset_state();
     processorState.carry = true;
@@ -35,7 +35,7 @@ void test_psw() {
     processorState.auxCarry = true;
     processorState.zero = true;
     processorState.sign = true;
-    TEST_ASSERT_EQUAL_UINT8(215, psw());
+    TEST_ASSERT_EQUAL_UINT8(215, flags());
 }
 
 void test_resetState() {
@@ -63,7 +63,7 @@ void test_resetState() {
 int main() {
     UNITY_BEGIN();
 
-    RUN_TEST(test_psw);
+    RUN_TEST(test_flags);
     RUN_TEST(test_resetState);
 
     return UNITY_END();

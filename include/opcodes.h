@@ -136,4 +136,13 @@ void jp();
 void jpe();
 void jpo();
 
+void push_b();
+void push_d();
+void push_h();
+void push_psw();
+void pop_b();
+void pop_d();
+void pop_h();
+void pop_psw();
+
 #endif

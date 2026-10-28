@@ -48,6 +48,6 @@ const size_t load_rom_from_file(FILE* fp);
 // 5: 0
 // 6: Zero
 // 7: Sign
-uint8_t psw();
+uint8_t flags();
 
 #endif

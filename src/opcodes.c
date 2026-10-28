@@ -1,9 +1,9 @@
 #include "opcodes.h"
 #include "state.h"
 
-uint16_t form_2_byte_from_1_bytes(uint8_t* const highRegister, uint8_t* const lowRegister) {
-    uint16_t result = ((uint16_t)*highRegister) << 8;
-    result |= (uint16_t)(*lowRegister);
+uint16_t form_2_byte_from_1_bytes(const uint8_t highRegister, const uint8_t lowRegister) {
+    uint16_t result = (uint16_t)highRegister << 8;
+    result |= (uint16_t)lowRegister;
     return result;
 }
 
@@ -75,7 +75,7 @@ void mvi_a() {
 }
 
 void mvi_m() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mvi(&processorState.readWriteMemory[addr]);
 }
 
@@ -102,7 +102,7 @@ void mov_bl() {
     mov(&processorState.B, &processorState.L);
 }
 void mov_bm() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.B, &processorState.readWriteMemory[addr]);
 }
 void mov_ba() {
@@ -125,7 +125,7 @@ void mov_cl() {
     mov(&processorState.C, &processorState.L);
 }
 void mov_cm() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.C, &processorState.readWriteMemory[addr]);
 }
 void mov_ca() {
@@ -148,7 +148,7 @@ void mov_dl() {
     mov(&processorState.D, &processorState.L);
 }
 void mov_dm() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.D, &processorState.readWriteMemory[addr]);
 }
 void mov_da() {
@@ -171,7 +171,7 @@ void mov_el() {
     mov(&processorState.E, &processorState.L);
 }
 void mov_em() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.E, &processorState.readWriteMemory[addr]);
 }
 void mov_ea() {
@@ -194,7 +194,7 @@ void mov_hl() {
     mov(&processorState.H, &processorState.L);
 }
 void mov_hm() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.H, &processorState.readWriteMemory[addr]);
 }
 void mov_ha() {
@@ -217,7 +217,7 @@ void mov_lh() {
     mov(&processorState.L, &processorState.H);
 }
 void mov_lm() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.L, &processorState.readWriteMemory[addr]);
 }
 void mov_la() {
@@ -225,31 +225,31 @@ void mov_la() {
 }
 
 void mov_mb() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.readWriteMemory[addr], &processorState.C);
 }
 void mov_mc() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.readWriteMemory[addr], &processorState.C);
 }
 void mov_md() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.readWriteMemory[addr], &processorState.D);
 }
 void mov_me() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.readWriteMemory[addr], &processorState.E);
 }
 void mov_mh() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.readWriteMemory[addr], &processorState.H);
 }
 void mov_ml() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.readWriteMemory[addr], &processorState.L);
 }
 void mov_ma() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.readWriteMemory[addr], &processorState.A);
 }
 
@@ -272,7 +272,7 @@ void mov_al() {
     mov(&processorState.A, &processorState.L);
 }
 void mov_am() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     mov(&processorState.A, &processorState.readWriteMemory[addr]);
 }
 
@@ -308,7 +308,7 @@ void inr_l() {
 }
 
 void inr_m() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     inr(&processorState.readWriteMemory[addr]);
 }
 
@@ -375,7 +375,7 @@ void dcr_l() {
 }
 
 void dcr_m() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     dcr(&processorState.readWriteMemory[addr]);
 }
 
@@ -420,38 +420,38 @@ void cma() {
 /////////////////////////////////////// LOAD/STORE ////////////////////////////////////////
 
 void stax_b() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.B, &processorState.C);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.B, processorState.C);
     processorState.readWriteMemory[addr] = processorState.A;
     ++processorState.programCounter;
 }
 
 void stax_d() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.D, &processorState.E);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.D, processorState.E);
     processorState.readWriteMemory[addr] = processorState.A;
     ++processorState.programCounter;
 }
 
 void ldax_b() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.B, &processorState.C);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.B, processorState.C);
     processorState.A = processorState.readWriteMemory[addr];
     ++processorState.programCounter;
 }
 
 void ldax_d() {
-    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.D, &processorState.E);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.D, processorState.E);
     processorState.A = processorState.readWriteMemory[addr];
     ++processorState.programCounter;
 }
 
 void sphl() {
-    processorState.stackPointer = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    processorState.stackPointer = form_2_byte_from_1_bytes(processorState.H, processorState.L);
     ++processorState.programCounter;
 }
 
 void sta() {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        &processorState.readOnlyMemory[processorState.programCounter + 2],
-        &processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readOnlyMemory[processorState.programCounter + 2],
+        processorState.readOnlyMemory[processorState.programCounter + 1]
     );
     processorState.readWriteMemory[addr] = processorState.A;
     processorState.programCounter += 3;
@@ -459,8 +459,8 @@ void sta() {
 
 void lda() {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        &processorState.readOnlyMemory[processorState.programCounter + 2],
-        &processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readOnlyMemory[processorState.programCounter + 2],
+        processorState.readOnlyMemory[processorState.programCounter + 1]
     );
     processorState.A = processorState.readWriteMemory[addr];
     processorState.programCounter += 3;
@@ -468,8 +468,8 @@ void lda() {
 
 void shld() {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        &processorState.readOnlyMemory[processorState.programCounter + 2],
-        &processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readOnlyMemory[processorState.programCounter + 2],
+        processorState.readOnlyMemory[processorState.programCounter + 1]
     );
     processorState.readWriteMemory[addr] = processorState.L;
     processorState.readWriteMemory[addr + 1] = processorState.H;
@@ -478,8 +478,8 @@ void shld() {
 
 void lhld() {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        &processorState.readOnlyMemory[processorState.programCounter + 2],
-        &processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readOnlyMemory[processorState.programCounter + 2],
+        processorState.readOnlyMemory[processorState.programCounter + 1]
     );
     processorState.L = processorState.readWriteMemory[addr];
     processorState.H = processorState.readWriteMemory[addr + 1];
@@ -512,14 +512,14 @@ void xthl() {
 
 void pchl() {
     // NOTE: We do not increment PC after this
-    processorState.programCounter = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    processorState.programCounter = form_2_byte_from_1_bytes(processorState.H, processorState.L);
 }
 
 void jmp() {
     // NOTE: We do not increment PC after this
     processorState.programCounter = form_2_byte_from_1_bytes(
-        &processorState.readOnlyMemory[processorState.programCounter + 2],
-        &processorState.readOnlyMemory[processorState.programCounter + 2]
+        processorState.readOnlyMemory[processorState.programCounter + 2],
+        processorState.readOnlyMemory[processorState.programCounter + 2]
     );
 }
 
@@ -585,4 +585,58 @@ void jpo() {
     } else {
         processorState.programCounter += 3;
     }
+}
+
+/////////////////////////////////////////// STACK ///////////////////////////////////////////
+
+void push(const uint8_t highByte, const uint8_t lowByte) {
+    processorState.readWriteMemory[processorState.stackPointer - 1] = highByte;
+    processorState.readWriteMemory[processorState.stackPointer - 2] = lowByte;
+    ++processorState.programCounter;
+    processorState.stackPointer -= 2;
+}
+
+void push_b() {
+    push(processorState.B, processorState.C);
+}
+
+void push_d() {
+    push(processorState.D, processorState.E);
+}
+void push_h() {
+    push(processorState.H, processorState.L);
+}
+
+void push_psw() {
+    push(processorState.A, flags());
+}
+
+void pop(uint8_t* const highByte, uint8_t* const lowByte) {
+    *lowByte = processorState.readWriteMemory[processorState.stackPointer];
+    *highByte = processorState.readWriteMemory[processorState.stackPointer + 1];
+    ++processorState.programCounter;
+    processorState.stackPointer += 2;
+}
+
+void pop_b() {
+    pop(&processorState.B, &processorState.C);
+}
+
+void pop_d() {
+    pop(&processorState.D, &processorState.E);
+}
+void pop_h() {
+    pop(&processorState.H, &processorState.L);
+}
+
+void pop_psw() {
+    processorState.A = processorState.readWriteMemory[processorState.stackPointer];
+    const uint8_t flags = processorState.readWriteMemory[processorState.stackPointer + 1];
+    processorState.carry = flags & (uint8_t)1;
+    processorState.parity= flags & (uint8_t)4;
+    processorState.auxCarry = flags & (uint8_t)16;
+    processorState.zero = flags & (uint8_t)64;
+    processorState.sign = flags & (uint8_t)128;
+    ++processorState.programCounter;
+    processorState.stackPointer += 2;
 }
