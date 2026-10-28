@@ -60,11 +60,41 @@ void test_resetState() {
     TEST_ASSERT_EQUAL_UINT8(0, processorState.readOnlyMemory[0]);
 }
 
+/**
+ * Testing some of the more finnicky opcodes
+ */
+void test_opcodes() {
+    reset_state();
+    processorState.A = 0b11110010;   // 11110010
+    rlc();
+    TEST_ASSERT(processorState.carry);
+    TEST_ASSERT_EQUAL_UINT8(0b11100101, processorState.A);
+
+    reset_state();
+    processorState.A = 0b00000010;
+    rlc();
+    TEST_ASSERT(!processorState.carry);
+    TEST_ASSERT_EQUAL_UINT8(0b00000100, processorState.A);
+
+    reset_state();
+    processorState.A = 0b11110010;
+    rrc();
+    TEST_ASSERT(!processorState.carry);
+    TEST_ASSERT_EQUAL_UINT8(0b01111001, processorState.A);
+
+    reset_state();
+    processorState.A = 0b11110011;
+    rrc();
+    TEST_ASSERT(processorState.carry);
+    TEST_ASSERT_EQUAL_UINT8(0b11111001, processorState.A);
+}
+
 int main() {
     UNITY_BEGIN();
 
     RUN_TEST(test_flags);
     RUN_TEST(test_resetState);
+    RUN_TEST(test_opcodes);
 
     return UNITY_END();
 }

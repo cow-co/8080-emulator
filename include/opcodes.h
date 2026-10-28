@@ -145,4 +145,7 @@ void pop_d();
 void pop_h();
 void pop_psw();
 
+void rrc();
+void rlc();
+
 #endif

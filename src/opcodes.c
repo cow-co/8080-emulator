@@ -640,3 +640,17 @@ void pop_psw() {
     ++processorState.programCounter;
     processorState.stackPointer += 2;
 }
+
+/////////////////////////////////////////// ROTATE ///////////////////////////////////////////
+
+void rlc() {
+    processorState.carry = processorState.A & (uint8_t)128;
+    processorState.A = processorState.A << 1;
+    processorState.A |= (uint8_t)processorState.carry;
+}
+
+void rrc() {
+    processorState.carry = processorState.A & (uint8_t)1;
+    processorState.A = processorState.A >> 1;
+    processorState.A |= ((uint8_t)processorState.carry << 7);
+}
