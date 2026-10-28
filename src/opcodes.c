@@ -1,7 +1,7 @@
 #include "opcodes.h"
 #include "state.h"
 
-const uint16_t form_2_byte_from_1_bytes(uint8_t* const highRegister, uint8_t* const lowRegister) {
+uint16_t form_2_byte_from_1_bytes(uint8_t* const highRegister, uint8_t* const lowRegister) {
     uint16_t result = ((uint16_t)*highRegister) << 8;
     result |= (uint16_t)(*lowRegister);
     return result;
@@ -75,7 +75,7 @@ void mvi_a() {
 }
 
 void mvi_m() {
-    const uint16_t addr = form_memory_ref(&processorState.H, &processorState.L);
+    const uint16_t addr = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
     mvi(&processorState.readWriteMemory[addr]);
 }
 
@@ -320,7 +320,7 @@ void inr_a() {
 
 void inx(uint8_t* const highRegister, uint8_t* const lowRegister) {
     *lowRegister += 1;
-    if (lowRegister == 0) {
+    if (*lowRegister == 0) {
         *highRegister += 1;
     }
     ++processorState.programCounter;
@@ -387,7 +387,7 @@ void dcr_a() {
 
 void dcx(uint8_t* const highRegister, uint8_t* const lowRegister) {
     *lowRegister -= 1;
-    if (lowRegister == UINT8_MAX) {
+    if (*lowRegister == UINT8_MAX) {
         *highRegister -= 1;
     }
     ++processorState.programCounter;
@@ -414,26 +414,175 @@ void dcx_sp() {
 
 void cma() {
     processorState.A = ~processorState.A;
+    ++processorState.programCounter;
 }
 
-///////////////////////////////////// STAX and LDAX //////////////////////////////////////
+/////////////////////////////////////// LOAD/STORE ////////////////////////////////////////
 
 void stax_b() {
     const uint16_t addr = form_2_byte_from_1_bytes(&processorState.B, &processorState.C);
     processorState.readWriteMemory[addr] = processorState.A;
+    ++processorState.programCounter;
 }
 
 void stax_d() {
     const uint16_t addr = form_2_byte_from_1_bytes(&processorState.D, &processorState.E);
     processorState.readWriteMemory[addr] = processorState.A;
+    ++processorState.programCounter;
 }
 
 void ldax_b() {
     const uint16_t addr = form_2_byte_from_1_bytes(&processorState.B, &processorState.C);
     processorState.A = processorState.readWriteMemory[addr];
+    ++processorState.programCounter;
 }
 
 void ldax_d() {
     const uint16_t addr = form_2_byte_from_1_bytes(&processorState.D, &processorState.E);
     processorState.A = processorState.readWriteMemory[addr];
+    ++processorState.programCounter;
+}
+
+void sphl() {
+    processorState.stackPointer = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+    ++processorState.programCounter;
+}
+
+void sta() {
+    const uint16_t addr = form_2_byte_from_1_bytes(
+        &processorState.readOnlyMemory[processorState.programCounter + 2],
+        &processorState.readOnlyMemory[processorState.programCounter + 1]
+    );
+    processorState.readWriteMemory[addr] = processorState.A;
+    processorState.programCounter += 3;
+}
+
+void lda() {
+    const uint16_t addr = form_2_byte_from_1_bytes(
+        &processorState.readOnlyMemory[processorState.programCounter + 2],
+        &processorState.readOnlyMemory[processorState.programCounter + 1]
+    );
+    processorState.A = processorState.readWriteMemory[addr];
+    processorState.programCounter += 3;
+}
+
+void shld() {
+    const uint16_t addr = form_2_byte_from_1_bytes(
+        &processorState.readOnlyMemory[processorState.programCounter + 2],
+        &processorState.readOnlyMemory[processorState.programCounter + 1]
+    );
+    processorState.readWriteMemory[addr] = processorState.L;
+    processorState.readWriteMemory[addr + 1] = processorState.H;
+    processorState.programCounter += 3;
+}
+
+void lhld() {
+    const uint16_t addr = form_2_byte_from_1_bytes(
+        &processorState.readOnlyMemory[processorState.programCounter + 2],
+        &processorState.readOnlyMemory[processorState.programCounter + 1]
+    );
+    processorState.L = processorState.readWriteMemory[addr];
+    processorState.H = processorState.readWriteMemory[addr + 1];
+    processorState.programCounter += 3;
+}
+
+/////////////////////////////////////// EXCHANGE ///////////////////////////////////////
+
+void xchg() {
+    uint8_t tmp = processorState.D;
+    processorState.D = processorState.H;
+    processorState.H = tmp;
+    tmp = processorState.E;
+    processorState.E = processorState.L;
+    processorState.L = tmp;
+    ++processorState.programCounter;
+}
+
+void xthl() {
+    uint8_t tmp = processorState.L;
+    processorState.L = processorState.readWriteMemory[processorState.stackPointer];
+    processorState.readWriteMemory[processorState.stackPointer] = tmp;
+    tmp = processorState.H;
+    processorState.H = processorState.readWriteMemory[processorState.stackPointer + 1];
+    processorState.readWriteMemory[processorState.stackPointer + 1] = tmp;
+    ++processorState.programCounter;
+}
+
+/////////////////////////////////////////// JUMP ///////////////////////////////////////////
+
+void pchl() {
+    // NOTE: We do not increment PC after this
+    processorState.programCounter = form_2_byte_from_1_bytes(&processorState.H, &processorState.L);
+}
+
+void jmp() {
+    // NOTE: We do not increment PC after this
+    processorState.programCounter = form_2_byte_from_1_bytes(
+        &processorState.readOnlyMemory[processorState.programCounter + 2],
+        &processorState.readOnlyMemory[processorState.programCounter + 2]
+    );
+}
+
+void jc() {
+    if (processorState.carry) {
+        jmp();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void jnc() {
+    if (!processorState.carry) {
+        jmp();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void jz() {
+    if (processorState.zero) {
+        jmp();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void jnz() {
+    if (!processorState.zero) {
+        jmp();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void jm() {
+    if (processorState.sign) {
+        jmp();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void jp() {
+    if (!processorState.sign) {
+        jmp();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void jpe() {
+    if (processorState.parity) {
+        jmp();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void jpo() {
+    if (!processorState.parity) {
+        jmp();
+    } else {
+        processorState.programCounter += 3;
+    }
 }

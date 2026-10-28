@@ -116,5 +116,24 @@ void stax_b();
 void stax_d();
 void ldax_b();
 void ldax_d();
+void sphl();
+void sta();
+void lda();
+void shld();
+void lhld();
+
+void xchg();
+void xthl();
+
+void pchl();
+void jmp();
+void jc();
+void jnc();
+void jz();
+void jnz();
+void jm();
+void jp();
+void jpe();
+void jpo();
 
 #endif

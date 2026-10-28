@@ -19,8 +19,12 @@ typedef struct {
     uint8_t H; 
     uint8_t L;
     uint8_t A;
-
-    uint8_t flags;
+    
+    bool carry;
+    bool parity;
+    bool auxCarry;
+    bool zero;
+    bool sign;
 
     // In the 8080, the processor can address 65,535 8-bit bytes of read-write memory
     uint8_t readWriteMemory[UINT16_MAX];
@@ -35,19 +39,15 @@ void reset_state();
  */
 const size_t load_rom_from_file(FILE* fp);
 
-/**
- * There are five flags, so the `flagIndex` here is pinned at 4 (0-based).
- * ie. if `flagIndex` is passed as `6`, then the value which is actually used is `4`.
- */
-void set_flag(size_t flagIndex);
-/**
- * There are five flags, so the `flagIndex` here is pinned at 4 (0-based).
- * ie. if `flagIndex` is passed as `6`, then the value which is actually used is `4`.
- */
-void reset_flag(size_t flagIndex);
-const uint16_t B_register_pair();
-const uint16_t D_register_pair();
-const uint16_t H_register_pair();
-const uint16_t psw();
+// Flags byte has bits set like so:
+// 0: Carry
+// 1: 1
+// 2: Parity
+// 3: 0
+// 4: Aux Carry
+// 5: 0
+// 6: Zero
+// 7: Sign
+uint8_t psw();
 
 #endif

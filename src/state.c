@@ -6,6 +6,7 @@ State processorState = {0};
 void reset_state() {
     processorState.programCounter = 0;
     processorState.stackPointer = 0;
+    
     processorState.B = 0;
     processorState.C = 0;
     processorState.D = 0;
@@ -13,8 +14,15 @@ void reset_state() {
     processorState.H = 0;
     processorState.L = 0;
     processorState.A = 0;
-    processorState.flags = 0;
+
+    processorState.carry = false;
+    processorState.parity = false;
+    processorState.auxCarry = false;
+    processorState.zero = false;
+    processorState.sign = false;
+
     memset(&processorState.readWriteMemory, 0, sizeof(processorState.readWriteMemory) / sizeof(uint8_t));
+    memset(&processorState.readOnlyMemory, 0, sizeof(processorState.readOnlyMemory) / sizeof(uint8_t));
 }
 
 const size_t load_rom_from_file(FILE* fp) {
@@ -28,44 +36,12 @@ const size_t load_rom_from_file(FILE* fp) {
     return fileSize;
 }
 
-void set_flag(size_t flagIndex) {
-    if (flagIndex >= 5) {
-        flagIndex = 4;
-    }
-    processorState.flags |= 1 << flagIndex;
-}
-
-void reset_flag(size_t flagIndex) {
-    if (flagIndex >= 5) {
-        flagIndex = 4;
-    }
-    processorState.flags &= ~(1 << flagIndex);
-}
-
-const uint16_t B_register_pair() {
-    uint16_t regPair = processorState.B;
-    regPair = regPair<< 8;
-    regPair |= (uint16_t)processorState.C;
-    return regPair;
-}
-
-const uint16_t D_register_pair() {
-    uint16_t regPair = processorState.D;
-    regPair = regPair<< 8;
-    regPair |= (uint16_t)processorState.E;
-    return regPair;
-}
-
-const uint16_t H_register_pair() {
-    uint16_t regPair = processorState.H;
-    regPair = regPair<< 8;
-    regPair |= (uint16_t)processorState.L;
-    return regPair;
-}
-
-const uint16_t psw() {
-    uint16_t regPair = processorState.A;
-    regPair = regPair<< 8;
-    regPair |= (uint16_t)processorState.flags;
-    return regPair;
+uint8_t psw() {
+    uint8_t psw = 2;
+    psw |= (uint8_t)processorState.carry;
+    psw |= (uint8_t)processorState.parity << 2;
+    psw |= (uint8_t)processorState.auxCarry << 4;
+    psw |= (uint8_t)processorState.zero << 6;
+    psw |= (uint8_t)processorState.sign << 7;
+    return psw;
 }
