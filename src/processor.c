@@ -1,4 +1,4 @@
-#include "control.h"
+#include "processor.h"
 #include "opcodes.h"
 #include "state.h"
 #include <stdlib.h>
@@ -262,40 +262,3 @@ const Opcode opcodes[256] = {
     {.assembly = "CPI       #0x%02x",       .opbytes = 2, .opFn = &cpi},
     {.assembly = "RST 7",                   .opbytes = 1, .opFn = &rst_7},
 };
-
-const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
-
-void run(FILE* fp, const bool executeInstructions) {
-    reset_state();
-    const size_t fileSize = load_rom_from_file(fp); // TODO We need to load multiple ROM files, since that's how space invaders was packaged (do this in a generic way)
-    printf("ROM File size is %zu\n", fileSize);
-    while (processorState.programCounter < fileSize) {
-        if (executeInstructions) {
-            printf("NOT IMPLEMENTED YET!\n");
-            return;
-        } else {
-            printf("PC = %hu\n", processorState.programCounter);
-            const unsigned char* const code = &processorState.readOnlyMemory[processorState.programCounter];
-            if (*code >= countOpcodes) {
-                printf("ERROR: Could not find opcode %c!\n", *code);
-                return;
-            }
-            const Opcode* const opcode = &opcodes[*code];
-            if (opcode != nullptr) {
-                printf("%04hu ", processorState.programCounter);
-                if (opcode->opbytes == 2) {
-                    printf(opcode->assembly, code[1]);
-                } else if (opcode->opbytes == 3) {
-                    printf(opcode->assembly, code[2], code[1]);
-                } else {
-                    printf("%s", opcode->assembly);
-                }
-                printf("\n");
-                processorState.programCounter += opcode->opbytes;
-            } else {
-                printf("ERROR: Could not find opcode %c!\n", *code);
-                return;
-            }
-        }
-    }
-}

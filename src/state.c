@@ -3,43 +3,6 @@
 
 State processorState = {0};
 
-void reset_state() {
-    processorState.programCounter = 0;
-    processorState.stackPointer = 0;
-    
-    processorState.B = 0;
-    processorState.C = 0;
-    processorState.D = 0;
-    processorState.E = 0;
-    processorState.H = 0;
-    processorState.L = 0;
-    processorState.A = 0;
-
-    processorState.carry = false;
-    processorState.parity = false;
-    processorState.auxCarry = false;
-    processorState.zero = false;
-    processorState.sign = false;
-
-    processorState.intEnabled = false;
-    processorState.halted = false;
-
-    memset(&processorState.readWriteMemory, 0, sizeof(processorState.readWriteMemory) / sizeof(uint8_t));
-    memset(&processorState.readOnlyMemory, 0, sizeof(processorState.readOnlyMemory) / sizeof(uint8_t));
-    memset(&processorState.deviceData, 0, sizeof(processorState.deviceData) / sizeof(uint8_t));
-}
-
-const size_t load_rom_from_file(FILE* fp) {
-    fseek(fp, 0L, SEEK_END);
-    size_t fileSize = ftell(fp);
-    fseek(fp, 0L, SEEK_SET);
-    if (fileSize > UINT16_MAX) {
-        fileSize = UINT16_MAX;
-    }
-    fread(&processorState.readOnlyMemory, fileSize, 1, fp);
-    return fileSize;
-}
-
 uint8_t flags() {
     uint8_t flags = 2;
     flags |= (uint8_t)processorState.carry;
@@ -48,4 +11,13 @@ uint8_t flags() {
     flags |= (uint8_t)processorState.zero << 6;
     flags |= (uint8_t)processorState.sign << 7;
     return flags;
+}
+
+void write_memory(const uint16_t addr, const uint8_t data) {
+    // The lowest 2K of memory is genuine ROM
+    if (addr <= 2047) {
+        printf("Could not write to memory location 0x%hx since it is in ROM!\n", addr);
+    } else {
+        processorState.readWriteMemory[addr] = data;
+    }
 }
