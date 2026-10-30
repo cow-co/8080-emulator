@@ -2,8 +2,10 @@
 #include "state.h"
 
 uint16_t form_2_byte_from_1_bytes(const uint8_t highRegister, const uint8_t lowRegister) {
+    printf("Forming one uint16_t from %hhu (high) and %hhu (low)\n", highRegister, lowRegister);
     uint16_t result = (uint16_t)highRegister << 8;
     result |= (uint16_t)lowRegister;
+    printf("Result is %hu\n", result);
     return result;
 }
 
@@ -534,10 +536,12 @@ void pchl() {
 
 void jmp() {
     // NOTE: We do not increment PC after this
+    printf("Setting PC!\n");
     processorState.programCounter = form_2_byte_from_1_bytes(
         processorState.readOnlyMemory[processorState.programCounter + 2],
-        processorState.readOnlyMemory[processorState.programCounter + 2]
+        processorState.readOnlyMemory[processorState.programCounter + 1]
     );
+    printf("PC is now %hu!\n", processorState.programCounter);
 }
 
 void jc() {
@@ -664,12 +668,14 @@ void rlc() {
     processorState.carry = processorState.A & (uint8_t)128;
     processorState.A = processorState.A << 1;
     processorState.A |= (uint8_t)processorState.carry;
+    ++processorState.programCounter;
 }
 
 void rrc() {
     processorState.carry = processorState.A & (uint8_t)1;
     processorState.A = processorState.A >> 1;
     processorState.A |= ((uint8_t)processorState.carry << 7);
+    ++processorState.programCounter;
 }
 
 void ral() {
@@ -677,6 +683,7 @@ void ral() {
     processorState.carry = processorState.A & (uint8_t)128;
     processorState.A = processorState.A << 1;
     processorState.A |= (uint8_t)tmp;
+    ++processorState.programCounter;
 }
 
 void rar() {
@@ -684,6 +691,7 @@ void rar() {
     processorState.carry = processorState.A & (uint8_t)1;
     processorState.A = processorState.A >> 1;
     processorState.A |= ((uint8_t)tmp << 7);
+    ++processorState.programCounter;
 }
 
 /////////////////////////////////////////// CARRY BIT ///////////////////////////////////////////
@@ -731,13 +739,16 @@ void daa() {
 
 /////////////////////////////////////////// ARITHMETIC ///////////////////////////////////////////
 
-// TODO Write tests for arithmetic
-
 void add(const uint8_t value) {
-    // TODO Assign aux carry
+    uint8_t lsn = processorState.A & 0x0F;
+    uint8_t valLSN = value & 0x0F;
+    processorState.auxCarry = lsn + valLSN > 0xF;
+
     uint16_t res = processorState.A + value;
     processorState.carry = (res & 0b100000000);
+
     processorState.A += value;
+
     processorState.zero = processorState.A == 0;
     assign_parity(processorState.A, 8);
     processorState.sign = processorState.A & 0b10000000;
@@ -776,6 +787,185 @@ void add_m() {
 void add_a() {
     add(processorState.A);
 }
+
+void adc(const uint8_t value) {
+    uint8_t lsn = processorState.A & 0x0F;
+    uint8_t valLSN = (value + 1) & 0x0F;
+    processorState.auxCarry = lsn + valLSN > 0xF;
+
+    uint16_t res = processorState.A + value + (uint16_t)processorState.carry;   // 0000000100010100
+    processorState.A += value;
+    processorState.A += processorState.carry;
+    processorState.carry = (res & 0b100000000); // true
+    processorState.zero = processorState.A == 0;
+    assign_parity(processorState.A, 8);
+    processorState.sign = processorState.A & 0b10000000;
+    ++processorState.programCounter;
+}
+
+void adc_b() {
+    adc(processorState.B);
+}
+
+void adc_c() {
+    adc(processorState.C);
+}
+
+void adc_d() {
+    adc(processorState.D);
+}
+
+void adc_e() {
+    adc(processorState.E);
+}
+
+void adc_h() {
+    adc(processorState.H);
+}
+
+void adc_l() {
+    adc(processorState.L);
+}
+
+void adc_m() {
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    adc(processorState.readWriteMemory[addr]);
+}
+
+void adc_a() {
+    adc(processorState.A);
+}
+
+void adi() {
+    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    add(data);
+    ++processorState.programCounter;    // add() already increments the counter, so we only need to move it along by 1 here
+}
+
+void aci() {
+    // Technically there is a very slight unnecessary overhead from assigning the condition bits unnecessarily in the 
+    // first call to add(), but we don't care about that.
+    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    adc(data);
+    ++processorState.programCounter;    // adc() already increments the counter, so we only need to move it along by 1 here
+}
+
+void dad(const uint16_t value) {
+    const uint16_t hl = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    uint32_t resCarried = value + hl;
+    uint16_t res = hl + value;
+    processorState.H = res >> 8;
+    processorState.L = res & 0x00FF;
+    processorState.carry = resCarried & 0x10000;
+    ++processorState.programCounter;
+}
+
+void dad_b() {
+    dad(form_2_byte_from_1_bytes(processorState.B, processorState.C));
+}
+
+void dad_d() {
+    dad(form_2_byte_from_1_bytes(processorState.D, processorState.E));
+
+}
+
+void dad_h() {
+    dad(form_2_byte_from_1_bytes(processorState.H, processorState.L));
+
+}
+
+void dad_sp() {
+    dad(processorState.stackPointer);
+}
+
+void sub(const uint8_t value) {
+    const uint8_t twosComp = ~value + 1;
+    add(twosComp);  // Handles the program counter increment
+    processorState.carry = !processorState.carry;
+}
+
+void sub_b() {
+    sub(processorState.B);
+}
+
+void sub_c() {
+    sub(processorState.C);
+}
+
+void sub_d() {
+    sub(processorState.D);
+}
+
+void sub_e() {
+    sub(processorState.E);
+}
+
+void sub_h() {
+    sub(processorState.H);
+}
+
+void sub_l() {
+    sub(processorState.L);
+}
+
+void sub_m() {
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    sub(processorState.readWriteMemory[addr]);
+}
+
+void sub_a() {
+    sub(processorState.A);
+}
+
+void sbb(const uint8_t value) {
+    sub(value + processorState.carry);
+}
+
+void sbb_b() {
+    sbb(processorState.B);
+}
+
+void sbb_c() {
+    sbb(processorState.C);
+}
+
+void sbb_d() {
+    sbb(processorState.D);
+}
+
+void sbb_e() {
+    sbb(processorState.E);
+}
+
+void sbb_h() {
+    sbb(processorState.H);
+}
+
+void sbb_l() {
+    sbb(processorState.L);
+}
+
+void sbb_m() {
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    sbb(processorState.readWriteMemory[addr]);
+}
+
+void sbb_a() {
+    sbb(processorState.A);
+}
+
+void sui() {
+    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    sub(data);
+    ++processorState.programCounter;    // Need an extra increment (on top of the one sub() gives us)
+}
+
+void sbi() {
+    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    sbb(data);
+    ++processorState.programCounter;    // Need an extra increment (on top of the one sub() gives us)
+}
+
 
 /////////////////////////////////////////// LOGIC ///////////////////////////////////////////
 
@@ -856,7 +1046,8 @@ void xra_l() {
 }
 
 void xra_m() {
-    xra(processorState.B);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    xra(processorState.readWriteMemory[addr]);
 }
 
 void xra_a() {
@@ -897,16 +1088,102 @@ void ora_l() {
 }
 
 void ora_m() {
-    ora(processorState.B);
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    ora(processorState.readWriteMemory[addr]);
 }
 
 void ora_a() {
     ora(processorState.A);
 }
 
-/////////////////////////////////////////// CALL/RET ///////////////////////////////////////////
+void ani() {
+    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    processorState.A &= data;
+    processorState.carry = false;
+    assign_parity(processorState.A, 8);
+    processorState.zero = !processorState.A;
+    processorState.sign = processorState.A & 0b10000000;
+    processorState.programCounter += 2;
+}
 
-// TODO Write tests for call/ret
+void xri() {
+    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    processorState.A ^= data;
+    processorState.carry = false;
+    assign_parity(processorState.A, 8);
+    processorState.zero = !processorState.A;
+    processorState.sign = processorState.A & 0b10000000;
+    processorState.programCounter += 2;
+}
+
+void ori() {
+    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    processorState.A |= data;
+    processorState.carry = false;
+    assign_parity(processorState.A, 8);
+    processorState.zero = !processorState.A;
+    processorState.sign = processorState.A & 0b10000000;
+    processorState.programCounter += 2;
+}
+
+void cmp(const uint8_t value) {
+    // Slightly different logic than sub (don't set accumulator) so let's keep this separate
+    // (for now at least)
+    const uint8_t twosComp = ~value + 1;
+    
+    uint8_t lsn = processorState.A & 0x0F;
+    uint8_t valLSN = twosComp & 0x0F;
+    processorState.auxCarry = lsn + valLSN > 0xF;
+
+    uint16_t resWithCarry = processorState.A + twosComp;
+    uint8_t res = processorState.A + twosComp;
+    processorState.carry = !(resWithCarry & 0b100000000);
+
+    processorState.zero = res== 0;
+    assign_parity(res, 8);
+    processorState.sign = res & 0b10000000;
+    ++processorState.programCounter;
+}
+
+void cmp_b() {
+    cmp(processorState.B);
+}
+
+void cmp_c() {
+    cmp(processorState.C);
+}
+
+void cmp_d() {
+    cmp(processorState.D);
+}
+
+void cmp_e() {
+    cmp(processorState.E);
+}
+
+void cmp_h() {
+    cmp(processorState.H);
+}
+
+void cmp_l() {
+    cmp(processorState.L);
+}
+
+void cmp_m() {
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    cmp(processorState.readWriteMemory[addr]);
+}
+
+void cmp_a() {
+    cmp(processorState.A);
+}
+
+void cpi() {
+    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    cmp(data);
+}
+
+/////////////////////////////////////////// CALL/RET ///////////////////////////////////////////
 
 void call() {
     processorState.readWriteMemory[processorState.stackPointer - 1] = (uint8_t)(processorState.programCounter >> 8);

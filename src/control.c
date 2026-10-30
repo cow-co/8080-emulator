@@ -1,4 +1,4 @@
-#include "disassembler.h"
+#include "control.h"
 #include "opcodes.h"
 #include "state.h"
 #include <stdlib.h>
@@ -14,7 +14,7 @@ const Opcode opcodes[256] = {
     {.assembly = "MVI       B, #0x%02x",    .opbytes = 2, .opFn = &mvi_b},
     {.assembly = "RLC",                     .opbytes = 1, .opFn = &rlc},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
-    {.assembly = "DAD       B",             .opbytes = 1},
+    {.assembly = "DAD       B",             .opbytes = 1, .opFn = &dad_b},
     {.assembly = "LDAX      B",             .opbytes = 1, .opFn = &ldax_b},
     {.assembly = "DCX       B",             .opbytes = 1, .opFn = &dcx_b},
     {.assembly = "INR       C",             .opbytes = 1, .opFn = &inr_c},
@@ -30,7 +30,7 @@ const Opcode opcodes[256] = {
     {.assembly = "MVI       D, #0x%02x",    .opbytes = 2, .opFn = &mvi_d},
     {.assembly = "RAL",                     .opbytes = 1, .opFn = &ral},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
-    {.assembly = "DAD       D",             .opbytes = 1},
+    {.assembly = "DAD       D",             .opbytes = 1, .opFn = &dad_d},
     {.assembly = "LDAX      D",             .opbytes = 1, .opFn = &ldax_d},
     {.assembly = "DCX       D",             .opbytes = 1, .opFn = &dcx_d},
     {.assembly = "INR       E",             .opbytes = 1, .opFn = &inr_e},
@@ -46,7 +46,7 @@ const Opcode opcodes[256] = {
     {.assembly = "MVI       H, #0x%02x",    .opbytes = 2, .opFn = &mvi_h},
     {.assembly = "DAA",                     .opbytes = 1, .opFn = &daa},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
-    {.assembly = "DAD       H",             .opbytes = 1},
+    {.assembly = "DAD       H",             .opbytes = 1, .opFn = &dad_h},
     {.assembly = "LHLD      $%02x%02x",     .opbytes = 3, .opFn = &lhld},
     {.assembly = "DCX       H",             .opbytes = 1, .opFn = &dcx_h},
     {.assembly = "INR       L",             .opbytes = 1, .opFn = &inr_l},
@@ -62,7 +62,7 @@ const Opcode opcodes[256] = {
     {.assembly = "MVI       M, #0x%02x",    .opbytes = 2, .opFn = &mvi_m},
     {.assembly = "STC",                     .opbytes = 1, .opFn = &stc},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
-    {.assembly = "DAD       SP",            .opbytes = 1},
+    {.assembly = "DAD       SP",            .opbytes = 1, .opFn = &dad_sp},
     {.assembly = "LDA       $%02x%02x",     .opbytes = 3, .opFn = &lda},
     {.assembly = "DCX       SP",            .opbytes = 1, .opFn = &dcx_sp},
     {.assembly = "INR       A",             .opbytes = 1, .opFn = &inr_a},
@@ -141,30 +141,30 @@ const Opcode opcodes[256] = {
     {.assembly = "ADD       L",             .opbytes = 1, .opFn = &add_l},
     {.assembly = "ADD       M",             .opbytes = 1, .opFn = &add_m},
     {.assembly = "ADD       A",             .opbytes = 1, .opFn = &add_a},
-    {.assembly = "ADC       B",             .opbytes = 1},
-    {.assembly = "ADC       C",             .opbytes = 1},
-    {.assembly = "ADC       D",             .opbytes = 1},
-    {.assembly = "ADC       E",             .opbytes = 1},
-    {.assembly = "ADC       H",             .opbytes = 1},
-    {.assembly = "ADC       L",             .opbytes = 1},
-    {.assembly = "ADC       M",             .opbytes = 1},
-    {.assembly = "ADC       A",             .opbytes = 1},
-    {.assembly = "SUB       B",             .opbytes = 1},
-    {.assembly = "SUB       C",             .opbytes = 1},
-    {.assembly = "SUB       D",             .opbytes = 1},
-    {.assembly = "SUB       E",             .opbytes = 1},
-    {.assembly = "SUB       H",             .opbytes = 1},
-    {.assembly = "SUB       L",             .opbytes = 1},
-    {.assembly = "SUB       M",             .opbytes = 1},
-    {.assembly = "SUB       A",             .opbytes = 1},
-    {.assembly = "SBB       B",             .opbytes = 1},
-    {.assembly = "SBB       C",             .opbytes = 1},
-    {.assembly = "SBB       D",             .opbytes = 1},
-    {.assembly = "SBB       E",             .opbytes = 1},
-    {.assembly = "SBB       H",             .opbytes = 1},
-    {.assembly = "SBB       L",             .opbytes = 1},
-    {.assembly = "SBB       M",             .opbytes = 1},
-    {.assembly = "SBB       A",             .opbytes = 1},
+    {.assembly = "ADC       B",             .opbytes = 1, .opFn = &adc_b},
+    {.assembly = "ADC       C",             .opbytes = 1, .opFn = &adc_c},
+    {.assembly = "ADC       D",             .opbytes = 1, .opFn = &adc_d},
+    {.assembly = "ADC       E",             .opbytes = 1, .opFn = &adc_e},
+    {.assembly = "ADC       H",             .opbytes = 1, .opFn = &adc_h},
+    {.assembly = "ADC       L",             .opbytes = 1, .opFn = &adc_l},
+    {.assembly = "ADC       M",             .opbytes = 1, .opFn = &adc_m},
+    {.assembly = "ADC       A",             .opbytes = 1, .opFn = &adc_a},
+    {.assembly = "SUB       B",             .opbytes = 1, .opFn = &sub_b},
+    {.assembly = "SUB       C",             .opbytes = 1, .opFn = &sub_c},
+    {.assembly = "SUB       D",             .opbytes = 1, .opFn = &sub_d},
+    {.assembly = "SUB       E",             .opbytes = 1, .opFn = &sub_e},
+    {.assembly = "SUB       H",             .opbytes = 1, .opFn = &sub_h},
+    {.assembly = "SUB       L",             .opbytes = 1, .opFn = &sub_l},
+    {.assembly = "SUB       M",             .opbytes = 1, .opFn = &sub_m},
+    {.assembly = "SUB       A",             .opbytes = 1, .opFn = &sub_a},
+    {.assembly = "SBB       B",             .opbytes = 1, .opFn = &sbb_b},
+    {.assembly = "SBB       C",             .opbytes = 1, .opFn = &sbb_c},
+    {.assembly = "SBB       D",             .opbytes = 1, .opFn = &sbb_d},
+    {.assembly = "SBB       E",             .opbytes = 1, .opFn = &sbb_e},
+    {.assembly = "SBB       H",             .opbytes = 1, .opFn = &sbb_h},
+    {.assembly = "SBB       L",             .opbytes = 1, .opFn = &sbb_l},
+    {.assembly = "SBB       M",             .opbytes = 1, .opFn = &sbb_m},
+    {.assembly = "SBB       A",             .opbytes = 1, .opFn = &sbb_a},
     {.assembly = "ANA       B",             .opbytes = 1, .opFn = &ana_b},
     {.assembly = "ANA       C",             .opbytes = 1, .opFn = &ana_c},
     {.assembly = "ANA       D",             .opbytes = 1, .opFn = &ana_d},
@@ -189,21 +189,21 @@ const Opcode opcodes[256] = {
     {.assembly = "ORA       L",             .opbytes = 1, .opFn = &ora_l},
     {.assembly = "ORA       M",             .opbytes = 1, .opFn = &ora_m},
     {.assembly = "ORA       A",             .opbytes = 1, .opFn = &ora_a},
-    {.assembly = "CMP       B",             .opbytes = 1},
-    {.assembly = "CMP       C",             .opbytes = 1},
-    {.assembly = "CMP       D",             .opbytes = 1},
-    {.assembly = "CMP       E",             .opbytes = 1},
-    {.assembly = "CMP       H",             .opbytes = 1},
-    {.assembly = "CMP       L",             .opbytes = 1},
-    {.assembly = "CMP       M",             .opbytes = 1},
-    {.assembly = "CMP       A",             .opbytes = 1},
+    {.assembly = "CMP       B",             .opbytes = 1, .opFn = &cmp_b},
+    {.assembly = "CMP       C",             .opbytes = 1, .opFn = &cmp_c},
+    {.assembly = "CMP       D",             .opbytes = 1, .opFn = &cmp_d},
+    {.assembly = "CMP       E",             .opbytes = 1, .opFn = &cmp_e},
+    {.assembly = "CMP       H",             .opbytes = 1, .opFn = &cmp_h},
+    {.assembly = "CMP       L",             .opbytes = 1, .opFn = &cmp_l},
+    {.assembly = "CMP       M",             .opbytes = 1, .opFn = &cmp_m},
+    {.assembly = "CMP       A",             .opbytes = 1, .opFn = &cmp_a},
     {.assembly = "RNZ",                     .opbytes = 1, .opFn = &rnz},
     {.assembly = "POP       B",             .opbytes = 1, .opFn = &pop_b},
     {.assembly = "JNZ       $%02x%02x",     .opbytes = 3, .opFn = &jnz},
     {.assembly = "JMP       $%02x%02x",     .opbytes = 3, .opFn = &jmp},
     {.assembly = "CNZ       $%02x%02x",     .opbytes = 3, .opFn = &cnz},
     {.assembly = "PUSH      B",             .opbytes = 1, .opFn = &push_b},
-    {.assembly = "ADI       #0x%02x",       .opbytes = 2},
+    {.assembly = "ADI       #0x%02x",       .opbytes = 2, .opFn = &adi},
     {.assembly = "RST 0",                   .opbytes = 1, .opFn = &rst_0},
     {.assembly = "RZ",                      .opbytes = 1, .opFn = &rz},
     {.assembly = "RET",                     .opbytes = 1, .opFn = &ret},
@@ -211,7 +211,7 @@ const Opcode opcodes[256] = {
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
     {.assembly = "CZ        $%02x%02x",     .opbytes = 3, .opFn = &cz},
     {.assembly = "CALL      $%02x%02x",     .opbytes = 3, .opFn = &call},
-    {.assembly = "ACI       #0x%02x",       .opbytes = 2},
+    {.assembly = "ACI       #0x%02x",       .opbytes = 2, .opFn = &aci},
     {.assembly = "RST 1",                   .opbytes = 1, .opFn = &rst_1},
     {.assembly = "RNC",                     .opbytes = 1, .opFn = &rnc},
     {.assembly = "POP       D",             .opbytes = 1, .opFn = &pop_d},
@@ -219,7 +219,7 @@ const Opcode opcodes[256] = {
     {.assembly = "OUT       #0x%02x",       .opbytes = 2, .opFn = &out},
     {.assembly = "CNC       $%02x%02x",     .opbytes = 3, .opFn = &cnc},
     {.assembly = "PUSH      D",             .opbytes = 1, .opFn = &push_d},
-    {.assembly = "SUI       #0x%02x",       .opbytes = 2},
+    {.assembly = "SUI       #0x%02x",       .opbytes = 2, .opFn = &sui},
     {.assembly = "RST 2",                   .opbytes = 1, .opFn = &rst_2},
     {.assembly = "RC",                      .opbytes = 1, .opFn = &rc},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
@@ -227,7 +227,7 @@ const Opcode opcodes[256] = {
     {.assembly = "IN        #0x%02x",       .opbytes = 2, .opFn = &in},
     {.assembly = "CC        $%02x%02x",     .opbytes = 3, .opFn = &cc},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
-    {.assembly = "SBI       #0x%02x",       .opbytes = 2},
+    {.assembly = "SBI       #0x%02x",       .opbytes = 2, .opFn = &sbi},
     {.assembly = "RST 3",                   .opbytes = 1, .opFn = &rst_3},
     {.assembly = "RPO",                     .opbytes = 1, .opFn = &rpo},
     {.assembly = "POP       H",             .opbytes = 1, .opFn = &pop_h},
@@ -235,7 +235,7 @@ const Opcode opcodes[256] = {
     {.assembly = "XTHL",                    .opbytes = 1, .opFn = &xthl},
     {.assembly = "CPO       $%02x%02x",     .opbytes = 3, .opFn = &cpo},
     {.assembly = "PUSH      H",             .opbytes = 1, .opFn = &push_h},
-    {.assembly = "ANI       #0x%02x",       .opbytes = 2},
+    {.assembly = "ANI       #0x%02x",       .opbytes = 2, .opFn = &ani},
     {.assembly = "RST 4",                   .opbytes = 1, .opFn = &rst_4},
     {.assembly = "RPE",                     .opbytes = 1, .opFn = &rpe},
     {.assembly = "PCHL",                    .opbytes = 1, .opFn = &pchl},
@@ -243,7 +243,7 @@ const Opcode opcodes[256] = {
     {.assembly = "XCHG",                    .opbytes = 1, .opFn = &xchg},
     {.assembly = "CPE       $%02x%02x",     .opbytes = 3, .opFn = &cpe},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
-    {.assembly = "XRI       #0x%02x",       .opbytes = 2},
+    {.assembly = "XRI       #0x%02x",       .opbytes = 2, .opFn = &xri},
     {.assembly = "RST 5",                   .opbytes = 1, .opFn = &rst_5},
     {.assembly = "RP",                      .opbytes = 1, .opFn = &rp},
     {.assembly = "POP       PSW",           .opbytes = 1, .opFn = &pop_psw},
@@ -251,7 +251,7 @@ const Opcode opcodes[256] = {
     {.assembly = "DI",                      .opbytes = 1, .opFn = &di},
     {.assembly = "CP        $%02x%02x",     .opbytes = 3, .opFn = &cp},
     {.assembly = "PUSH      PSW",           .opbytes = 1, .opFn = &push_psw},
-    {.assembly = "ORI       #0x%02x",       .opbytes = 2},
+    {.assembly = "ORI       #0x%02x",       .opbytes = 2, .opFn = &ori},
     {.assembly = "RST 6",                   .opbytes = 1, .opFn = &rst_6},
     {.assembly = "RM",                      .opbytes = 1, .opFn = &rm},
     {.assembly = "SPHL",                    .opbytes = 1, .opFn = &sphl},
@@ -265,42 +265,37 @@ const Opcode opcodes[256] = {
 
 const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
 
-int disassemble_8080op() {
-    // We can use the code itself as an index into the opcodes array since the opcodes are
-    // basically just densely packed into contiguous integers (and unoccupied values can be represented 
-    // by no-ops anyway)
-    const unsigned char* const code = &processorState.readOnlyMemory[processorState.programCounter];
-    if (*code >= countOpcodes) {
-        printf("ERROR: Could not find opcode %c!\n", *code);
-        return -1;
-    }
-    const Opcode* const opcode = &opcodes[*code];
-    if (opcode != nullptr) {
-        printf("%04hu ", processorState.programCounter);
-        if (opcode->opbytes == 2) {
-            printf(opcode->assembly, code[1]);
-        } else if (opcode->opbytes == 3) {
-            printf(opcode->assembly, code[2], code[1]);
-        } else {
-            printf("%s", opcode->assembly);
-        }
-        printf("\n");
-        return opcode->opbytes;
-    } else {
-        return -1;
-    }
-}
-
-void disassemble(FILE *fp) {
+void run(FILE* fp, const bool executeInstructions) {
     reset_state();
-    const size_t fileSize = load_rom_from_file(fp);
-
+    const size_t fileSize = load_rom_from_file(fp); // TODO We need to load multiple ROM files, since that's how space invaders was packaged (do this in a generic way)
+    printf("ROM File size is %zu\n", fileSize);
     while (processorState.programCounter < fileSize) {
-        int bytes = disassemble_8080op();
-        if (bytes < 0) {
-            break;
+        if (executeInstructions) {
+            printf("NOT IMPLEMENTED YET!\n");
+            return;
         } else {
-            processorState.programCounter += bytes;
+            printf("PC = %hu\n", processorState.programCounter);
+            const unsigned char* const code = &processorState.readOnlyMemory[processorState.programCounter];
+            if (*code >= countOpcodes) {
+                printf("ERROR: Could not find opcode %c!\n", *code);
+                return;
+            }
+            const Opcode* const opcode = &opcodes[*code];
+            if (opcode != nullptr) {
+                printf("%04hu ", processorState.programCounter);
+                if (opcode->opbytes == 2) {
+                    printf(opcode->assembly, code[1]);
+                } else if (opcode->opbytes == 3) {
+                    printf(opcode->assembly, code[2], code[1]);
+                } else {
+                    printf("%s", opcode->assembly);
+                }
+                printf("\n");
+                processorState.programCounter += opcode->opbytes;
+            } else {
+                printf("ERROR: Could not find opcode %c!\n", *code);
+                return;
+            }
         }
     }
 }

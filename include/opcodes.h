@@ -162,6 +162,41 @@ void add_h();
 void add_l();
 void add_m();
 void add_a();
+void adc_b();
+void adc_c();
+void adc_d();
+void adc_e();
+void adc_h();
+void adc_l();
+void adc_m();
+void adc_a();
+void adi();
+void aci();
+void dad_b();
+void dad_d();
+void dad_h();
+void dad_sp();
+
+void sub_b();
+void sub_c();
+void sub_d();
+void sub_e();
+void sub_h();
+void sub_l();
+void sub_m();
+void sub_a();
+
+void sbb_b();
+void sbb_c();
+void sbb_d();
+void sbb_e();
+void sbb_h();
+void sbb_l();
+void sbb_m();
+void sbb_a();
+
+void sui();
+void sbi();
 
 void ana_b();
 void ana_c();
@@ -189,6 +224,19 @@ void ora_h();
 void ora_l();
 void ora_m();
 void ora_a();
+
+void ani();
+void ori();
+void xri();
+
+void cmp_b();
+void cmp_c();
+void cmp_d();
+void cmp_e();
+void cmp_h();
+void cmp_l();
+void cmp_m();
+void cmp_a();
 
 void call();
 void cc();

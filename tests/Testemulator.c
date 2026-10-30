@@ -213,14 +213,134 @@ void test_arithmetic() {
     TEST_ASSERT(processorState.auxCarry);
 
     reset_state();
-    processorState.A = 0x05;
+    processorState.A = 0x08;
     add_a();
-    TEST_ASSERT_EQUAL_UINT8(0x0A, processorState.A);
+    TEST_ASSERT_EQUAL_UINT8(0x10, processorState.A);
     TEST_ASSERT(!processorState.carry);
-    TEST_ASSERT(processorState.parity);
+    TEST_ASSERT(!processorState.parity);
     TEST_ASSERT(!processorState.sign);
     TEST_ASSERT(!processorState.zero);
     TEST_ASSERT(processorState.auxCarry);
+
+    reset_state();
+    processorState.A = 0x56;
+    processorState.readOnlyMemory[1] = -66;
+    processorState.readOnlyMemory[2] = (uint8_t)0xCE;
+    processorState.readOnlyMemory[3] = 66;
+    aci();
+    TEST_ASSERT_EQUAL_UINT8(0x14, processorState.A);
+    TEST_ASSERT(processorState.carry);
+    aci();
+    TEST_ASSERT_EQUAL_UINT8(0x57, processorState.A);
+    TEST_ASSERT(!processorState.carry);
+
+    reset_state();
+    processorState.B = 0x33;
+    processorState.C = 0x9F;
+    processorState.H = 0xA1;
+    processorState.L = 0x7B;
+    dad_b();
+    TEST_ASSERT_EQUAL_UINT8(0xD5, processorState.H);
+    TEST_ASSERT_EQUAL_UINT8(0x1A, processorState.L);
+    TEST_ASSERT(!processorState.carry);
+
+    processorState.H = 0xFF;
+    processorState.L = 0x00;
+    dad_h();
+    TEST_ASSERT_EQUAL_UINT8(0b11111110, processorState.H);
+    TEST_ASSERT_EQUAL_UINT8(0, processorState.L);
+    TEST_ASSERT(processorState.carry);
+
+    reset_state();
+    processorState.A = 0x42;
+    processorState.C = 0x3D;
+    adc_c();
+    TEST_ASSERT_EQUAL_UINT8(0x7F, processorState.A);
+
+    reset_state();
+    processorState.A = 0x42;
+    processorState.C = 0x3D;
+    processorState.carry = true;
+    adc_c();
+    TEST_ASSERT_EQUAL_UINT8(0x80, processorState.A);
+    TEST_ASSERT(processorState.sign);
+    TEST_ASSERT(processorState.auxCarry);
+
+    // SUB
+    reset_state();
+    processorState.A = 0x3E;
+    sub_a();
+    TEST_ASSERT_EQUAL_UINT8(0, processorState.A);
+    TEST_ASSERT(processorState.zero);
+    TEST_ASSERT(!processorState.sign);
+    TEST_ASSERT(processorState.parity);
+    TEST_ASSERT(!processorState.carry);
+    TEST_ASSERT(processorState.auxCarry);
+
+    reset_state();
+    processorState.A = 10;
+    processorState.B = 9;
+    sub_b();
+    TEST_ASSERT_EQUAL_UINT8(1, processorState.A);
+    TEST_ASSERT(!processorState.zero);
+    TEST_ASSERT(!processorState.sign);
+    TEST_ASSERT(!processorState.parity);
+    TEST_ASSERT(!processorState.carry);
+    TEST_ASSERT(processorState.auxCarry);
+
+    reset_state();
+    processorState.B = 10;
+    processorState.A = 9;
+    sub_b();
+    TEST_ASSERT_EQUAL_UINT8(0xFF, processorState.A);
+    TEST_ASSERT(!processorState.zero);
+    TEST_ASSERT(processorState.sign);
+    TEST_ASSERT(processorState.parity);
+    TEST_ASSERT(processorState.carry);
+    TEST_ASSERT(!processorState.auxCarry);
+
+    reset_state();
+    processorState.L = 2;
+    processorState.A = 4;
+    processorState.carry = true;
+    sbb_l();
+    TEST_ASSERT_EQUAL_UINT8(1, processorState.A);
+    TEST_ASSERT(!processorState.carry);
+    TEST_ASSERT(processorState.auxCarry);
+    TEST_ASSERT(!processorState.zero);
+    TEST_ASSERT(!processorState.parity);
+    TEST_ASSERT(!processorState.sign);
+
+    reset_state();
+    processorState.readOnlyMemory[1] = 1;
+    sui();
+    TEST_ASSERT_EQUAL_UINT8(-1, processorState.A);
+    TEST_ASSERT(processorState.carry);
+    TEST_ASSERT(!processorState.zero);
+    TEST_ASSERT(!processorState.auxCarry);
+    TEST_ASSERT(processorState.sign);
+    TEST_ASSERT(processorState.parity);
+
+    reset_state();
+    processorState.readOnlyMemory[1] = 1;
+    sbi();
+    TEST_ASSERT_EQUAL_UINT8(-1, processorState.A);
+    TEST_ASSERT(processorState.carry);
+    TEST_ASSERT(!processorState.zero);
+    TEST_ASSERT(!processorState.auxCarry);
+    TEST_ASSERT(processorState.sign);
+    TEST_ASSERT(processorState.parity);
+
+    reset_state();
+    processorState.readOnlyMemory[1] = 1;
+    processorState.carry = true;
+    sbi();
+    TEST_ASSERT_EQUAL_UINT8(-2, processorState.A);
+    TEST_ASSERT(processorState.carry);
+    TEST_ASSERT(!processorState.zero);
+    TEST_ASSERT(!processorState.auxCarry);
+    TEST_ASSERT(processorState.sign);
+    TEST_ASSERT(!processorState.parity);
 }
 
 void test_logic() {
@@ -265,6 +385,37 @@ void test_logic() {
     TEST_ASSERT(!processorState.zero);
     TEST_ASSERT(!processorState.sign);
     TEST_ASSERT(processorState.parity);
+
+    // CMP
+    reset_state();
+    processorState.A = 0x0A;
+    processorState.E = 0x05;
+    cmp_e();
+    TEST_ASSERT_EQUAL_UINT8(0x0A, processorState.A);
+    TEST_ASSERT_EQUAL_UINT8(0x05, processorState.E);
+    TEST_ASSERT(!processorState.carry);
+    TEST_ASSERT(!processorState.zero);
+
+    reset_state();
+    processorState.A = 0x02;
+    processorState.E = 0x05;
+    cmp_e();
+    TEST_ASSERT(processorState.carry);
+    TEST_ASSERT(!processorState.zero);
+
+    reset_state();
+    processorState.A = -0x1B;
+    processorState.E = 0x05;
+    cmp_e();
+    TEST_ASSERT(!processorState.carry);
+    TEST_ASSERT(!processorState.zero);
+
+    reset_state();
+    processorState.A = 0x05;
+    processorState.E = 0x05;
+    cmp_e();
+    TEST_ASSERT(!processorState.carry);
+    TEST_ASSERT(processorState.zero);
 }
 
 void test_accumulator() {

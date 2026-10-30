@@ -18,6 +18,6 @@ extern const size_t countOpcodes;
 /**
  * NOTE: Call_er_ closes the file pointer
  */
-void disassemble(FILE* fp);
+void run(FILE* fp, const bool executeInstructions);
 
 #endif
