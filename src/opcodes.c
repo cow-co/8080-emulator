@@ -2,10 +2,8 @@
 #include "state.h"
 
 uint16_t form_2_byte_from_1_bytes(const uint8_t highRegister, const uint8_t lowRegister) {
-    printf("Forming one uint16_t from %hhu (high) and %hhu (low)\n", highRegister, lowRegister);
     uint16_t result = (uint16_t)highRegister << 8;
     result |= (uint16_t)lowRegister;
-    printf("Result is %hu\n", result);
     return result;
 }
 
@@ -536,12 +534,10 @@ void pchl() {
 
 void jmp() {
     // NOTE: We do not increment PC after this
-    printf("Setting PC!\n");
     processorState.programCounter = form_2_byte_from_1_bytes(
         processorState.readOnlyMemory[processorState.programCounter + 2],
         processorState.readOnlyMemory[processorState.programCounter + 1]
     );
-    printf("PC is now %hu!\n", processorState.programCounter);
 }
 
 void jc() {
