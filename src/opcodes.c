@@ -54,7 +54,7 @@ void lxi_sp() {
 
 void mvi(uint8_t* const dst) {
     // Move an immediate
-    *dst = processorState.readOnlyMemory[processorState.programCounter + 1];
+    *dst = processorState.readWriteMemory[processorState.programCounter + 1];
     processorState.programCounter += 2;
 }
 
@@ -438,13 +438,13 @@ void dcx_sp() {
 
 void stax_b() {
     const uint16_t addr = form_2_byte_from_1_bytes(processorState.B, processorState.C);
-    processorState.readWriteMemory[addr] = processorState.A;
+    write_memory(addr, processorState.A);
     ++processorState.programCounter;
 }
 
 void stax_d() {
     const uint16_t addr = form_2_byte_from_1_bytes(processorState.D, processorState.E);
-    processorState.readWriteMemory[addr] = processorState.A;
+    write_memory(addr, processorState.A);
     ++processorState.programCounter;
 }
 
@@ -467,17 +467,17 @@ void sphl() {
 
 void sta() {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        processorState.readOnlyMemory[processorState.programCounter + 2],
-        processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readWriteMemory[processorState.programCounter + 2],
+        processorState.readWriteMemory[processorState.programCounter + 1]
     );
-    processorState.readWriteMemory[addr] = processorState.A;
+    write_memory(addr, processorState.A);
     processorState.programCounter += 3;
 }
 
 void lda() {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        processorState.readOnlyMemory[processorState.programCounter + 2],
-        processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readWriteMemory[processorState.programCounter + 2],
+        processorState.readWriteMemory[processorState.programCounter + 1]
     );
     processorState.A = processorState.readWriteMemory[addr];
     processorState.programCounter += 3;
@@ -485,18 +485,18 @@ void lda() {
 
 void shld() {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        processorState.readOnlyMemory[processorState.programCounter + 2],
-        processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readWriteMemory[processorState.programCounter + 2],
+        processorState.readWriteMemory[processorState.programCounter + 1]
     );
-    processorState.readWriteMemory[addr] = processorState.L;
-    processorState.readWriteMemory[addr + 1] = processorState.H;
+    write_memory(addr, processorState.L);
+    write_memory(addr + 1, processorState.H);
     processorState.programCounter += 3;
 }
 
 void lhld() {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        processorState.readOnlyMemory[processorState.programCounter + 2],
-        processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readWriteMemory[processorState.programCounter + 2],
+        processorState.readWriteMemory[processorState.programCounter + 1]
     );
     processorState.L = processorState.readWriteMemory[addr];
     processorState.H = processorState.readWriteMemory[addr + 1];
@@ -518,10 +518,10 @@ void xchg() {
 void xthl() {
     uint8_t tmp = processorState.L;
     processorState.L = processorState.readWriteMemory[processorState.stackPointer];
-    processorState.readWriteMemory[processorState.stackPointer] = tmp;
+    write_memory(processorState.stackPointer, tmp);
     tmp = processorState.H;
     processorState.H = processorState.readWriteMemory[processorState.stackPointer + 1];
-    processorState.readWriteMemory[processorState.stackPointer + 1] = tmp;
+    write_memory(processorState.stackPointer + 1, tmp);
     ++processorState.programCounter;
 }
 
@@ -535,8 +535,8 @@ void pchl() {
 void jmp() {
     // NOTE: We do not increment PC after this
     processorState.programCounter = form_2_byte_from_1_bytes(
-        processorState.readOnlyMemory[processorState.programCounter + 2],
-        processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readWriteMemory[processorState.programCounter + 2],
+        processorState.readWriteMemory[processorState.programCounter + 1]
     );
 }
 
@@ -607,8 +607,8 @@ void jpo() {
 /////////////////////////////////////////// STACK ///////////////////////////////////////////
 
 void push(const uint8_t highByte, const uint8_t lowByte) {
-    processorState.readWriteMemory[processorState.stackPointer - 1] = highByte;
-    processorState.readWriteMemory[processorState.stackPointer - 2] = lowByte;
+    write_memory(processorState.stackPointer - 1, highByte);
+    write_memory(processorState.stackPointer - 2, lowByte);
     ++processorState.programCounter;
     processorState.stackPointer -= 2;
 }
@@ -833,7 +833,7 @@ void adc_a() {
 }
 
 void adi() {
-    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    const uint8_t data = processorState.readWriteMemory[processorState.programCounter + 1];
     add(data);
     ++processorState.programCounter;    // add() already increments the counter, so we only need to move it along by 1 here
 }
@@ -841,7 +841,7 @@ void adi() {
 void aci() {
     // Technically there is a very slight unnecessary overhead from assigning the condition bits unnecessarily in the 
     // first call to add(), but we don't care about that.
-    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    const uint8_t data = processorState.readWriteMemory[processorState.programCounter + 1];
     adc(data);
     ++processorState.programCounter;    // adc() already increments the counter, so we only need to move it along by 1 here
 }
@@ -951,13 +951,13 @@ void sbb_a() {
 }
 
 void sui() {
-    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    const uint8_t data = processorState.readWriteMemory[processorState.programCounter + 1];
     sub(data);
     ++processorState.programCounter;    // Need an extra increment (on top of the one sub() gives us)
 }
 
 void sbi() {
-    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    const uint8_t data = processorState.readWriteMemory[processorState.programCounter + 1];
     sbb(data);
     ++processorState.programCounter;    // Need an extra increment (on top of the one sub() gives us)
 }
@@ -1093,7 +1093,7 @@ void ora_a() {
 }
 
 void ani() {
-    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    const uint8_t data = processorState.readWriteMemory[processorState.programCounter + 1];
     processorState.A &= data;
     processorState.carry = false;
     assign_parity(processorState.A, 8);
@@ -1103,7 +1103,7 @@ void ani() {
 }
 
 void xri() {
-    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    const uint8_t data = processorState.readWriteMemory[processorState.programCounter + 1];
     processorState.A ^= data;
     processorState.carry = false;
     assign_parity(processorState.A, 8);
@@ -1113,7 +1113,7 @@ void xri() {
 }
 
 void ori() {
-    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    const uint8_t data = processorState.readWriteMemory[processorState.programCounter + 1];
     processorState.A |= data;
     processorState.carry = false;
     assign_parity(processorState.A, 8);
@@ -1175,19 +1175,19 @@ void cmp_a() {
 }
 
 void cpi() {
-    const uint8_t data = processorState.readOnlyMemory[processorState.programCounter + 1];
+    const uint8_t data = processorState.readWriteMemory[processorState.programCounter + 1];
     cmp(data);
 }
 
 /////////////////////////////////////////// CALL/RET ///////////////////////////////////////////
 
 void call() {
-    processorState.readWriteMemory[processorState.stackPointer - 1] = (uint8_t)(processorState.programCounter >> 8);
-    processorState.readWriteMemory[processorState.stackPointer - 2] = (uint8_t)(processorState.programCounter & 0xFF);
+    write_memory(processorState.stackPointer - 1, (processorState.programCounter >> 8));
+    write_memory(processorState.stackPointer - 2, (processorState.programCounter & 0xFF));
     processorState.stackPointer -= 2;
     processorState.programCounter = form_2_byte_from_1_bytes(
-        processorState.readOnlyMemory[processorState.programCounter + 2],
-        processorState.readOnlyMemory[processorState.programCounter + 1]
+        processorState.readWriteMemory[processorState.programCounter + 2],
+        processorState.readWriteMemory[processorState.programCounter + 1]
     );
 }
 
@@ -1327,8 +1327,8 @@ void rpo() {
 /////////////////////////////////////////// INTERRUPTS/RESTARTS ///////////////////////////////////////////
 
 void rst(const uint8_t exp) {
-    processorState.readWriteMemory[processorState.stackPointer - 1] = (uint8_t)(processorState.programCounter >> 8);
-    processorState.readWriteMemory[processorState.stackPointer - 2] = (uint8_t)(processorState.programCounter & 0xFF);
+    write_memory(processorState.stackPointer - 1, (processorState.programCounter >> 8));
+    write_memory(processorState.stackPointer - 2, (processorState.programCounter & 0xFF));
     processorState.stackPointer -= 2;
     processorState.programCounter = (uint16_t)(exp ^ 0b11000111);
 }
@@ -1383,13 +1383,13 @@ void hlt() {
 /////////////////////////////////////////// INPUT/OUTPUT ///////////////////////////////////////////
 
 void in() {
-    uint8_t devNumber = processorState.readOnlyMemory[processorState.programCounter + 1];
+    uint8_t devNumber = processorState.readWriteMemory[processorState.programCounter + 1];
     processorState.A = processorState.deviceData[devNumber];
     processorState.programCounter += 2;
 }
 
 void out() {
-    uint8_t devNumber = processorState.readOnlyMemory[processorState.programCounter + 1];
+    uint8_t devNumber = processorState.readWriteMemory[processorState.programCounter + 1];
     processorState.deviceData[devNumber] = processorState.A;
     processorState.programCounter += 2;
 }

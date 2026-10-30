@@ -1,4 +1,5 @@
 #include "unity.h"
+#include "emulator_layer.h"
 #include "state.h"
 #include "opcodes.h"
 
@@ -49,7 +50,6 @@ void test_resetState() {
     processorState.E = UINT8_MAX;
     processorState.L = UINT8_MAX;
     processorState.readWriteMemory[0] = 10;
-    processorState.readOnlyMemory[0] = 10;
     reset_state();
     TEST_ASSERT_EQUAL_UINT8(0, processorState.A);
     TEST_ASSERT_EQUAL_UINT8(0, processorState.B);
@@ -59,7 +59,6 @@ void test_resetState() {
     TEST_ASSERT_EQUAL_UINT8(0, processorState.H);
     TEST_ASSERT_EQUAL_UINT8(0, processorState.L);
     TEST_ASSERT_EQUAL_UINT8(0, processorState.readWriteMemory[0]);
-    TEST_ASSERT_EQUAL_UINT8(0, processorState.readOnlyMemory[0]);
 }
 
 void test_rotates() {
@@ -224,9 +223,9 @@ void test_arithmetic() {
 
     reset_state();
     processorState.A = 0x56;
-    processorState.readOnlyMemory[1] = -66;
-    processorState.readOnlyMemory[2] = (uint8_t)0xCE;
-    processorState.readOnlyMemory[3] = 66;
+    processorState.readWriteMemory[1] = -66;
+    processorState.readWriteMemory[2] = (uint8_t)0xCE;
+    processorState.readWriteMemory[3] = 66;
     aci();
     TEST_ASSERT_EQUAL_UINT8(0x14, processorState.A);
     TEST_ASSERT(processorState.carry);
@@ -312,7 +311,7 @@ void test_arithmetic() {
     TEST_ASSERT(!processorState.sign);
 
     reset_state();
-    processorState.readOnlyMemory[1] = 1;
+    processorState.readWriteMemory[1] = 1;
     sui();
     TEST_ASSERT_EQUAL_UINT8(-1, processorState.A);
     TEST_ASSERT(processorState.carry);
@@ -322,7 +321,7 @@ void test_arithmetic() {
     TEST_ASSERT(processorState.parity);
 
     reset_state();
-    processorState.readOnlyMemory[1] = 1;
+    processorState.readWriteMemory[1] = 1;
     sbi();
     TEST_ASSERT_EQUAL_UINT8(-1, processorState.A);
     TEST_ASSERT(processorState.carry);
@@ -332,7 +331,7 @@ void test_arithmetic() {
     TEST_ASSERT(processorState.parity);
 
     reset_state();
-    processorState.readOnlyMemory[1] = 1;
+    processorState.readWriteMemory[1] = 1;
     processorState.carry = true;
     sbi();
     TEST_ASSERT_EQUAL_UINT8(-2, processorState.A);
@@ -432,6 +431,14 @@ void test_accumulator() {
     TEST_ASSERT_EQUAL_UINT8(0xAE, processorState.A);
 }
 
+void test_utils() {
+    reset_state();
+    write_memory(0, 1);
+    TEST_ASSERT_EQUAL_UINT8(0, processorState.readWriteMemory[0]);
+    write_memory(2048, 1);
+    TEST_ASSERT_EQUAL_UINT8(1, processorState.readWriteMemory[2048]);
+}
+
 int main() {
     UNITY_BEGIN();
 
@@ -442,6 +449,7 @@ int main() {
     RUN_TEST(test_rotates);
     RUN_TEST(test_stackOps);
     RUN_TEST(test_logic);
+    RUN_TEST(test_utils);
 
     return UNITY_END();
 }

@@ -1,5 +1,5 @@
-#ifndef DISASSEMBLER_H
-#define DISASSEMBLER_H
+#ifndef PROCESSOR_H
+#define PROCESSOR_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -14,10 +14,5 @@ typedef struct {
 
 extern const Opcode opcodes[256];
 extern const size_t countOpcodes;
-
-/**
- * NOTE: Call_er_ closes the file pointer
- */
-void run(FILE* fp, const bool executeInstructions);
 
 #endif
