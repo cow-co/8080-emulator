@@ -259,7 +259,7 @@ const Opcode opcodes[256] = {
     {.assembly = "EI",                      .opbytes = 1, .opFn = &ei},
     {.assembly = "CM        $%02x%02x",     .opbytes = 3, .opFn = &cm},
     {.assembly = "NOP",                     .opbytes = 1, .opFn = &nop},
-    {.assembly = "CPI       #0x%02x",       .opbytes = 2},
+    {.assembly = "CPI       #0x%02x",       .opbytes = 2, .opFn = &cpi},
     {.assembly = "RST 7",                   .opbytes = 1, .opFn = &rst_7},
 };
 

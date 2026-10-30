@@ -237,6 +237,7 @@ void cmp_h();
 void cmp_l();
 void cmp_m();
 void cmp_a();
+void cpi();
 
 void call();
 void cc();
