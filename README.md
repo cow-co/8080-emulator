@@ -36,7 +36,12 @@ Functions exposed:
 
 ### Machine Layer API
 
-This layer exposes any input and output functions required for the machine hardware being emulated. In the bundled example, this is a Space Invaders arcade cabinet. All implementations, however, should expose a `load_rom()` function, which handles loading the ROM files for the specific executable we are emulating.
+This layer exposes any input and output functions required for the machine hardware being emulated. In the bundled example, this is a Space Invaders arcade cabinet. All implementations, however, should expose:
+- `load_rom()`: Handles loading the ROM files for the specific executable we are emulating.
+- `key_press()`: When a binary input  (eg. a button) is activated.
+- `key_release()`: When a binary input  (eg. a button) is deactivated.
+- `reset_machine()`
+- `run_machine()`
 
 ### Host Layer API
 
