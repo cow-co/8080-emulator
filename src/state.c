@@ -6,6 +6,7 @@ State processorState = {0};
 void reset_state() {
     processorState.programCounter = 0;
     processorState.stackPointer = 0;
+    
     processorState.B = 0;
     processorState.C = 0;
     processorState.D = 0;
@@ -13,48 +14,38 @@ void reset_state() {
     processorState.H = 0;
     processorState.L = 0;
     processorState.A = 0;
-    processorState.flags = 0;
+
+    processorState.carry = false;
+    processorState.parity = false;
+    processorState.auxCarry = false;
+    processorState.zero = false;
+    processorState.sign = false;
+
+    processorState.intEnabled = false;
+    processorState.halted = false;
+
     memset(&processorState.readWriteMemory, 0, sizeof(processorState.readWriteMemory) / sizeof(uint8_t));
+    memset(&processorState.readOnlyMemory, 0, sizeof(processorState.readOnlyMemory) / sizeof(uint8_t));
+    memset(&processorState.deviceData, 0, sizeof(processorState.deviceData) / sizeof(uint8_t));
 }
 
-void set_flag(size_t flagIndex) {
-    if (flagIndex >= 5) {
-        flagIndex = 4;
+const size_t load_rom_from_file(FILE* fp) {
+    fseek(fp, 0L, SEEK_END);
+    size_t fileSize = ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
+    if (fileSize > UINT16_MAX) {
+        fileSize = UINT16_MAX;
     }
-    processorState.flags |= 1 << flagIndex;
+    fread(&processorState.readOnlyMemory, fileSize, 1, fp);
+    return fileSize;
 }
 
-void reset_flag(size_t flagIndex) {
-    if (flagIndex >= 5) {
-        flagIndex = 4;
-    }
-    processorState.flags &= ~(1 << flagIndex);
-}
-
-const uint16_t B_register_pair() {
-    uint16_t regPair = processorState.B;
-    regPair = regPair<< 8;
-    regPair |= (uint16_t)processorState.C;
-    return regPair;
-}
-
-const uint16_t D_register_pair() {
-    uint16_t regPair = processorState.D;
-    regPair = regPair<< 8;
-    regPair |= (uint16_t)processorState.E;
-    return regPair;
-}
-
-const uint16_t H_register_pair() {
-    uint16_t regPair = processorState.H;
-    regPair = regPair<< 8;
-    regPair |= (uint16_t)processorState.L;
-    return regPair;
-}
-
-const uint16_t psw() {
-    uint16_t regPair = processorState.A;
-    regPair = regPair<< 8;
-    regPair |= (uint16_t)processorState.flags;
-    return regPair;
+uint8_t flags() {
+    uint8_t flags = 2;
+    flags |= (uint8_t)processorState.carry;
+    flags |= (uint8_t)processorState.parity << 2;
+    flags |= (uint8_t)processorState.auxCarry << 4;
+    flags |= (uint8_t)processorState.zero << 6;
+    flags |= (uint8_t)processorState.sign << 7;
+    return flags;
 }
