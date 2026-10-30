@@ -21,8 +21,12 @@ void reset_state() {
     processorState.zero = false;
     processorState.sign = false;
 
+    processorState.intEnabled = false;
+    processorState.halted = false;
+
     memset(&processorState.readWriteMemory, 0, sizeof(processorState.readWriteMemory) / sizeof(uint8_t));
     memset(&processorState.readOnlyMemory, 0, sizeof(processorState.readOnlyMemory) / sizeof(uint8_t));
+    memset(&processorState.deviceData, 0, sizeof(processorState.deviceData) / sizeof(uint8_t));
 }
 
 const size_t load_rom_from_file(FILE* fp) {

@@ -7,6 +7,18 @@ uint16_t form_2_byte_from_1_bytes(const uint8_t highRegister, const uint8_t lowR
     return result;
 }
 
+void assign_parity(unsigned value, size_t size) {
+    unsigned par = 0;
+    value = (value & ((1 << size) - 1));
+    for (size_t i = 0; i < size; ++i) {
+        if (value & 0x01) {
+            ++par;
+        }
+        value = value >> 1;
+    }
+    processorState.parity = !(par & 0x01);
+}
+
 void nop() {
     processorState.programCounter += 1;
 }
@@ -279,7 +291,13 @@ void mov_am() {
 /////////////////////////////////////////// INR ///////////////////////////////////////////
 
 void inr(uint8_t* const dst) {
+    // TODO Assign aux carry
+    uint16_t res = *dst + 1;
+    processorState.carry = (res & 0b100000000);
     *dst += 1;
+    processorState.zero = *dst == 0;
+    assign_parity(*dst, 8);
+    processorState.sign = *dst & 0b10000000;
     ++processorState.programCounter;
 }
 
@@ -346,7 +364,13 @@ void inx_sp() {
 /////////////////////////////////////////// DCR ///////////////////////////////////////////
 
 void dcr(uint8_t* const reg) {
+    // TODO Assign aux carry
+    uint16_t res = *reg - 1;
+    processorState.carry = (res & 0b100000000);
     *reg -= 1;
+    processorState.zero = *reg == 0;
+    assign_parity(*reg, 8);
+    processorState.sign = *reg & 0b10000000;
     ++processorState.programCounter;
 }
 
@@ -407,13 +431,6 @@ void dcx_h() {
 
 void dcx_sp() {
     --processorState.stackPointer;
-    ++processorState.programCounter;
-}
-
-/////////////////////////////////////////// CMA ///////////////////////////////////////////
-
-void cma() {
-    processorState.A = ~processorState.A;
     ++processorState.programCounter;
 }
 
@@ -653,4 +670,453 @@ void rrc() {
     processorState.carry = processorState.A & (uint8_t)1;
     processorState.A = processorState.A >> 1;
     processorState.A |= ((uint8_t)processorState.carry << 7);
+}
+
+void ral() {
+    const bool tmp = processorState.carry;
+    processorState.carry = processorState.A & (uint8_t)128;
+    processorState.A = processorState.A << 1;
+    processorState.A |= (uint8_t)tmp;
+}
+
+void rar() {
+    const bool tmp = processorState.carry;
+    processorState.carry = processorState.A & (uint8_t)1;
+    processorState.A = processorState.A >> 1;
+    processorState.A |= ((uint8_t)tmp << 7);
+}
+
+/////////////////////////////////////////// CARRY BIT ///////////////////////////////////////////
+
+void cmc() {
+    processorState.carry = !processorState.carry;
+    ++processorState.programCounter;
+}
+
+void stc() {
+    processorState.carry = true;
+    ++processorState.programCounter;
+}
+
+/////////////////////////////////////////// ACCUMULATOR ///////////////////////////////////////////
+
+void cma() {
+    processorState.A = ~processorState.A;
+    ++processorState.programCounter;
+}
+
+void daa() {
+    // Decimal adjust accumulator: converts accumulator into two decimal digits
+    const uint8_t lowNibble = processorState.A & 0b00001111;
+    const bool lowNibbleGreaterThanNine = lowNibble > 9;
+    if (processorState.auxCarry || lowNibbleGreaterThanNine) {
+        // Checks if the addition will generate a carry out of bit 3
+        uint16_t res = lowNibble + 0b0110;
+        processorState.auxCarry = (res & 0b10000);
+        res = processorState.A + 6;
+        processorState.carry = (res & 0b100000000);
+        processorState.A += 6;
+    }
+    
+    const uint8_t highNibble = processorState.A & 0b11110000;
+    const bool highNibbleGreaterThanNine = (highNibble >> 4) > 9;
+    if (processorState.carry || highNibbleGreaterThanNine) {
+        // Checks if the addition will generate a carry out of bit 7
+        uint16_t res = (highNibble + 0b01100000);
+        processorState.carry = (res & 0b100000000);
+        processorState.A += 0b01100000;
+    }
+    ++processorState.programCounter;
+}
+
+/////////////////////////////////////////// ARITHMETIC ///////////////////////////////////////////
+
+// TODO Write tests for arithmetic
+
+void add(const uint8_t value) {
+    // TODO Assign aux carry
+    uint16_t res = processorState.A + value;
+    processorState.carry = (res & 0b100000000);
+    processorState.A += value;
+    processorState.zero = processorState.A == 0;
+    assign_parity(processorState.A, 8);
+    processorState.sign = processorState.A & 0b10000000;
+    ++processorState.programCounter;
+}
+
+void add_b() {
+    add(processorState.B);
+}
+
+void add_c() {
+    add(processorState.C);
+}
+
+void add_d() {
+    add(processorState.D);
+}
+
+void add_e() {
+    add(processorState.E);
+}
+
+void add_h() {
+    add(processorState.H);
+}
+
+void add_l() {
+    add(processorState.L);
+}
+
+void add_m() {
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    add(processorState.readWriteMemory[addr]);
+}
+
+void add_a() {
+    add(processorState.A);
+}
+
+/////////////////////////////////////////// LOGIC ///////////////////////////////////////////
+
+void ana(const uint8_t value) {
+    processorState.A &= value;
+    processorState.carry = false;
+    assign_parity(processorState.A, 8);
+    processorState.zero = !processorState.A;
+    processorState.sign = processorState.A & 0b10000000;
+    ++processorState.programCounter;
+}
+
+void ana_b() {
+    ana(processorState.B);
+}
+
+void ana_c() {
+    ana(processorState.C);
+}
+
+void ana_d() {
+    ana(processorState.D);
+}
+
+void ana_e() {
+    ana(processorState.E);
+}
+
+void ana_h() {
+    ana(processorState.H);
+}
+
+void ana_l() {
+    ana(processorState.L);
+}
+
+void ana_m() {
+    const uint16_t addr = form_2_byte_from_1_bytes(processorState.H, processorState.L);
+    ana(processorState.readWriteMemory[addr]);
+}
+
+void ana_a() {
+    ana(processorState.A);
+}
+
+void xra(const uint8_t value) {
+    processorState.A ^= value;
+    processorState.carry = false;
+    processorState.auxCarry = false;
+    assign_parity(processorState.A, 8);
+    processorState.zero = !processorState.A;
+    processorState.sign = processorState.A & 0b10000000;
+    ++processorState.programCounter;
+}
+
+void xra_b() {
+    xra(processorState.B);
+}
+
+void xra_c() {
+    xra(processorState.C);
+}
+
+void xra_d() {
+    xra(processorState.D);
+}
+
+void xra_e() {
+    xra(processorState.E);
+}
+
+void xra_h() {
+    xra(processorState.H);
+}
+
+void xra_l() {
+    xra(processorState.L);
+}
+
+void xra_m() {
+    xra(processorState.B);
+}
+
+void xra_a() {
+    xra(processorState.A);
+}
+
+void ora(const uint8_t value) {
+    processorState.A |= value;
+    processorState.carry = false;
+    assign_parity(processorState.A, 8);
+    processorState.zero = !processorState.A;
+    processorState.sign = processorState.A & 0b10000000;
+    ++processorState.programCounter;
+}
+
+void ora_b() {
+    ora(processorState.B);
+}
+
+void ora_c() {
+    ora(processorState.C);
+}
+
+void ora_d() {
+    ora(processorState.D);
+}
+
+void ora_e() {
+    ora(processorState.E);
+}
+
+void ora_h() {
+    ora(processorState.H);
+}
+
+void ora_l() {
+    ora(processorState.L);
+}
+
+void ora_m() {
+    ora(processorState.B);
+}
+
+void ora_a() {
+    ora(processorState.A);
+}
+
+/////////////////////////////////////////// CALL/RET ///////////////////////////////////////////
+
+// TODO Write tests for call/ret
+
+void call() {
+    processorState.readWriteMemory[processorState.stackPointer - 1] = (uint8_t)(processorState.programCounter >> 8);
+    processorState.readWriteMemory[processorState.stackPointer - 2] = (uint8_t)(processorState.programCounter & 0xFF);
+    processorState.stackPointer -= 2;
+    processorState.programCounter = form_2_byte_from_1_bytes(
+        processorState.readOnlyMemory[processorState.programCounter + 2],
+        processorState.readOnlyMemory[processorState.programCounter + 1]
+    );
+}
+
+void cc() {
+    if (processorState.carry) {
+        call();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void cnc() {
+    if (!processorState.carry) {
+        call();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void cz() {
+    if (processorState.zero) {
+        call();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void cnz() {
+    if (!processorState.zero) {
+        call();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void cm() {
+    if (processorState.sign) {
+        call();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void cp() {
+    if (!processorState.sign) {
+        call();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void cpe() {
+    if (processorState.parity) {
+        call();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void cpo() {
+    if (!processorState.parity) {
+        call();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void ret() {
+    processorState.programCounter &= (processorState.readWriteMemory[processorState.stackPointer + 1] << 8);
+    processorState.programCounter &= processorState.readWriteMemory[processorState.stackPointer + 0];
+}
+
+void rc() {
+    if (processorState.carry) {
+        ret();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void rnc() {
+    if (!processorState.carry) {
+        ret();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void rz() {
+    if (processorState.zero) {
+        ret();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void rnz() {
+    if (!processorState.zero) {
+        ret();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void rm() {
+    if (processorState.sign) {
+        ret();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void rp() {
+    if (!processorState.sign) {
+        ret();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void rpe() {
+    if (processorState.parity) {
+        ret();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+void rpo() {
+    if (!processorState.parity) {
+        ret();
+    } else {
+        processorState.programCounter += 3;
+    }
+}
+
+/////////////////////////////////////////// INTERRUPTS/RESTARTS ///////////////////////////////////////////
+
+void rst(const uint8_t exp) {
+    processorState.readWriteMemory[processorState.stackPointer - 1] = (uint8_t)(processorState.programCounter >> 8);
+    processorState.readWriteMemory[processorState.stackPointer - 2] = (uint8_t)(processorState.programCounter & 0xFF);
+    processorState.stackPointer -= 2;
+    processorState.programCounter = (uint16_t)(exp ^ 0b11000111);
+}
+
+void rst_0() {
+    rst(0);
+}
+
+void rst_1() {
+    rst(1);
+}
+
+void rst_2() {
+    rst(2);
+}
+
+void rst_3() {
+    rst(3);
+}
+
+void rst_4() {
+    rst(4);
+}
+
+void rst_5() {
+    rst(5);
+}
+
+void rst_6() {
+    rst(6);
+}
+
+void rst_7() {
+    rst(7);
+}
+
+void ei() {
+    processorState.intEnabled = true;
+    ++processorState.programCounter;
+}
+
+void di() {
+    processorState.intEnabled = false;
+    ++processorState.programCounter;
+}
+
+void hlt() {
+    ++processorState.programCounter;
+    processorState.halted = true;
+}
+
+/////////////////////////////////////////// INPUT/OUTPUT ///////////////////////////////////////////
+
+void in() {
+    uint8_t devNumber = processorState.readOnlyMemory[processorState.programCounter + 1];
+    processorState.A = processorState.deviceData[devNumber];
+    processorState.programCounter += 2;
+}
+
+void out() {
+    uint8_t devNumber = processorState.readOnlyMemory[processorState.programCounter + 1];
+    processorState.deviceData[devNumber] = processorState.A;
+    processorState.programCounter += 2;
 }

@@ -26,10 +26,15 @@ typedef struct {
     bool zero;
     bool sign;
 
+    bool intEnabled;
+    bool halted;
+
     // In the 8080, the processor can address 65,535 8-bit bytes of read-write memory
     uint8_t readWriteMemory[UINT16_MAX];
     // In the 8080, the processor can address 65,535 8-bit bytes of read-only memory (program counter is 16 bits)
     uint8_t readOnlyMemory[UINT16_MAX];
+
+    uint8_t deviceData[UINT8_MAX + 1];
 } State;
 
 extern State processorState;

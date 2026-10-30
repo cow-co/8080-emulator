@@ -110,8 +110,6 @@ void dcx_d();
 void dcx_h();
 void dcx_sp();
 
-void cma();
-
 void stax_b();
 void stax_d();
 void ldax_b();
@@ -147,5 +145,85 @@ void pop_psw();
 
 void rrc();
 void rlc();
+void rar();
+void ral();
+
+void cmc();
+void stc();
+
+void cma();
+void daa();
+
+void add_b();
+void add_c();
+void add_d();
+void add_e();
+void add_h();
+void add_l();
+void add_m();
+void add_a();
+
+void ana_b();
+void ana_c();
+void ana_d();
+void ana_e();
+void ana_h();
+void ana_l();
+void ana_m();
+void ana_a();
+
+void xra_b();
+void xra_c();
+void xra_d();
+void xra_e();
+void xra_h();
+void xra_l();
+void xra_m();
+void xra_a();
+
+void ora_b();
+void ora_c();
+void ora_d();
+void ora_e();
+void ora_h();
+void ora_l();
+void ora_m();
+void ora_a();
+
+void call();
+void cc();
+void cnc();
+void cp();
+void cm();
+void cz();
+void cnz();
+void cpe();
+void cpo();
+
+void ret();
+void rc();
+void rnc();
+void rp();
+void rm();
+void rz();
+void rnz();
+void rpe();
+void rpo();
+
+void rst_0();
+void rst_1();
+void rst_2();
+void rst_3();
+void rst_4();
+void rst_5();
+void rst_6();
+void rst_7();
+
+void ei();
+void di();
+void hlt();
+
+void in();
+void out();
 
 #endif
