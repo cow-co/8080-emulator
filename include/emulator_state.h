@@ -35,8 +35,7 @@ typedef struct {
     uint8_t deviceData[UINT8_MAX + 1];
 } State;
 
-extern State processorState;
-void write_memory(const uint16_t addr, const uint8_t data);
+void write_memory(State* state, const uint16_t addr, const uint8_t data);
 
 // Flags byte has bits set like so:
 // 0: Carry
@@ -47,6 +46,6 @@ void write_memory(const uint16_t addr, const uint8_t data);
 // 5: 0
 // 6: Zero
 // 7: Sign
-uint8_t flags();
+uint8_t flags(State* state);
 
 #endif

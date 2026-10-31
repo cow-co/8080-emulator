@@ -44,7 +44,7 @@ This layer exposes any input and output functions required for the machine hardw
 - `run_machine()`
 - An enumeration of supported inputs for passing in to the `key_press()` and `key_release()` functions.
 - An instance of `DisplayParams`, describing the parameters of the display for the machine (eg. the Space Invaders display was 224 * 220, with one-byte pixels, and a 60Hz refresh rate).
-- `graphics_state()`: Returning a pointer to the buffer containing the raw pixel data to be rendered. Note that this _may not_ be a direct pass-through from the emulator memory in cases where the memory layout is not representative of what should be displayed (eg. the display in Space Invaders was rotated by 90 degrees in the cabinet).
+- `graphics_state()`: Returning a pointer to the buffer containing the raw pixel data to be rendered. Note that this _may not_ be a direct pass-through from the emulator memory in cases where the memory layout is not representative of what should be displayed (eg. the display in Space Invaders was rotated by 90 degrees in the cabinet). This returns a pointer to `uint8_t` so that we can be very clear about the size of the bytes (`unsigned char` is not _required_ to be 8 bits).
 
 ### Host Layer API
 
