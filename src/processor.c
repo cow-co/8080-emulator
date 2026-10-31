@@ -1,6 +1,6 @@
 #include "processor.h"
 #include "opcodes.h"
-#include "state.h"
+#include "emulator_state.h"
 #include <stdlib.h>
 
 // We use "#0x.." for immediates, and "$...." for addresses

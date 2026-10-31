@@ -36,7 +36,15 @@ Functions exposed:
 
 ### Machine Layer API
 
-This layer exposes any input and output functions required for the machine hardware being emulated. In the bundled example, this is a Space Invaders arcade cabinet. All implementations, however, should expose a `load_rom()` function, which handles loading the ROM files for the specific executable we are emulating.
+This layer exposes any input and output functions required for the machine hardware being emulated. In the bundled example, this is a Space Invaders arcade cabinet. All implementations, however, should expose:
+- `load_rom()`: Handles loading the ROM files for the specific executable we are emulating.
+- `key_press()`: When a binary input  (eg. a button) is activated.
+- `key_release()`: When a binary input  (eg. a button) is deactivated.
+- `reset_machine()`
+- `run_machine()`
+- An enumeration of supported inputs for passing in to the `key_press()` and `key_release()` functions.
+- An instance of `DisplayParams`, describing the parameters of the display for the machine (eg. the Space Invaders display was 224 * 220, with one-byte pixels, and a 60Hz refresh rate).
+- `graphics_state()`: Returning a pointer to the buffer containing the raw pixel data to be rendered. Note that this _may not_ be a direct pass-through from the emulator memory in cases where the memory layout is not representative of what should be displayed (eg. the display in Space Invaders was rotated by 90 degrees in the cabinet). This returns a pointer to `uint8_t` so that we can be very clear about the size of the bytes (`unsigned char` is not _required_ to be 8 bits).
 
 ### Host Layer API
 
