@@ -1,5 +1,6 @@
 #ifndef MACHINE_API_H
 #define MACHINE_API_H
+#include <stdint.h>
 
 typedef enum {
     SHOOT,

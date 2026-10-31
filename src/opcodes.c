@@ -438,13 +438,13 @@ void dcx_sp(State* state) {
 
 void stax_b(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->B, state->C);
-    write_memory(addr, state->A);
+    write_memory(state, addr, state->A);
     ++state->programCounter;
 }
 
 void stax_d(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->D, state->E);
-    write_memory(addr, state->A);
+    write_memory(state, addr, state->A);
     ++state->programCounter;
 }
 
@@ -470,7 +470,7 @@ void sta(State* state) {
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
-    write_memory(addr, state->A);
+    write_memory(state, addr, state->A);
     state->programCounter += 3;
 }
 
@@ -488,8 +488,8 @@ void shld(State* state) {
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
-    write_memory(addr, state->L);
-    write_memory(addr + 1, state->H);
+    write_memory(state, addr, state->L);
+    write_memory(state, addr + 1, state->H);
     state->programCounter += 3;
 }
 
@@ -518,10 +518,10 @@ void xchg(State* state) {
 void xthl(State* state) {
     uint8_t tmp = state->L;
     state->L = state->memory[state->stackPointer];
-    write_memory(state->stackPointer, tmp);
+    write_memory(state, state->stackPointer, tmp);
     tmp = state->H;
     state->H = state->memory[state->stackPointer + 1];
-    write_memory(state->stackPointer + 1, tmp);
+    write_memory(state, state->stackPointer + 1, tmp);
     ++state->programCounter;
 }
 
@@ -607,8 +607,8 @@ void jpo(State* state) {
 /////////////////////////////////////////// STACK ///////////////////////////////////////////
 
 void push(State* state, const uint8_t highByte, const uint8_t lowByte) {
-    write_memory(state->stackPointer - 1, highByte);
-    write_memory(state->stackPointer - 2, lowByte);
+    write_memory(state, state->stackPointer - 1, highByte);
+    write_memory(state, state->stackPointer - 2, lowByte);
     ++state->programCounter;
     state->stackPointer -= 2;
 }
@@ -625,7 +625,7 @@ void push_h(State* state) {
 }
 
 void push_psw(State* state) {
-    push(state, state->A, flags());
+    push(state, state->A, flags(state));
 }
 
 void pop(State* state, uint8_t* const highByte, uint8_t* const lowByte) {
@@ -1182,8 +1182,8 @@ void cpi(State* state) {
 /////////////////////////////////////////// CALL/RET ///////////////////////////////////////////
 
 void call(State* state) {
-    write_memory(state->stackPointer - 1, (state->programCounter >> 8));
-    write_memory(state->stackPointer - 2, (state->programCounter & 0xFF));
+    write_memory(state, state->stackPointer - 1, (state->programCounter >> 8));
+    write_memory(state, state->stackPointer - 2, (state->programCounter & 0xFF));
     state->stackPointer -= 2;
     state->programCounter = form_2_byte_from_1_bytes(
         state->memory[state->programCounter + 2],
@@ -1327,8 +1327,8 @@ void rpo(State* state) {
 /////////////////////////////////////////// INTERRUPTS/RESTARTS ///////////////////////////////////////////
 
 void rst(State* state, const uint8_t exp) {
-    write_memory(state->stackPointer - 1, (state->programCounter >> 8));
-    write_memory(state->stackPointer - 2, (state->programCounter & 0xFF));
+    write_memory(state, state->stackPointer - 1, (state->programCounter >> 8));
+    write_memory(state, state->stackPointer - 2, (state->programCounter & 0xFF));
     state->stackPointer -= 2;
     state->programCounter = (uint16_t)(exp ^ 0b11000111);
 }

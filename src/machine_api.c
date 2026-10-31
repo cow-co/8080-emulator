@@ -1,4 +1,5 @@
 #include "machine_api.h"
+#include "machine_state.h"
 #include "emulator_api.h"
 
 void load_rom() {
@@ -23,10 +24,10 @@ void load_rom() {
         return;
     }
     
-    load_binary(h_file, 0x0000);
-    load_binary(g_file, 0x0800);
-    load_binary(f_file, 0x1000);
-    load_binary(e_file, 0x1800);
+    load_binary(machine.processorState, h_file, 0x0000);
+    load_binary(machine.processorState, g_file, 0x0800);
+    load_binary(machine.processorState, f_file, 0x1000);
+    load_binary(machine.processorState, e_file, 0x1800);
 }
 
 void reset_machine() {
