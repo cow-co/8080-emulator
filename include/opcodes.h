@@ -1,6 +1,6 @@
 #ifndef OPCODES_H
 #define OPCODES_H
-#include "state.h"
+#include "emulator_state.h"
 
 // We group here based on the type of opcode, not in order of opcode value
 void nop(State* state);

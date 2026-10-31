@@ -1,4 +1,4 @@
-#include "state.h"
+#include "emulator_state.h"
 #include <string.h>
 
 State processorState = {0};
@@ -18,6 +18,6 @@ void write_memory(const uint16_t addr, const uint8_t data) {
     if (addr <= 2047) {
         printf("Could not write to memory location 0x%hx since it is in ROM!\n", addr);
     } else {
-        processorState.readWriteMemory[addr] = data;
+        processorState.memory[addr] = data;
     }
 }

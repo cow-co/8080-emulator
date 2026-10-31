@@ -1,9 +1,7 @@
-#ifndef MACHINE_H
-
-#include "state.h"
+#ifndef MACHINE_STATE_H
+#define MACHINE_STATE_H
 #include <stdint.h>
-
-#define MACHINE_H
+#include "emulator_state.h"
 
 typedef struct {
     State* processorState;
@@ -11,11 +9,5 @@ typedef struct {
 } SpaceInvadersCabinet;
 
 extern SpaceInvadersCabinet machine;
-
-void reset_machine();
-void load_rom();
-void input();
-void output();
-void run_machine();
 
 #endif

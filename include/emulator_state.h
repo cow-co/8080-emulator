@@ -1,5 +1,5 @@
-#ifndef STATE_H
-#define STATE_H
+#ifndef EMULATOR_STATE_H
+#define EMULATOR_STATE_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -30,7 +30,7 @@ typedef struct {
     bool halted;
 
     // In the 8080, the processor can address 65,535 8-bit bytes of read-write memory
-    uint8_t readWriteMemory[UINT16_MAX];
+    uint8_t memory[UINT16_MAX];
 
     uint8_t deviceData[UINT8_MAX + 1];
 } State;

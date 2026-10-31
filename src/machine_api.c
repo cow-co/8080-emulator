@@ -1,5 +1,5 @@
-#include "machine_layer.h"
-#include "emulator_layer.h"
+#include "machine_api.h"
+#include "emulator_api.h"
 
 void load_rom() {
     FILE* h_file = fopen("./data/invaders.h", "rb");
@@ -27,4 +27,20 @@ void load_rom() {
     load_binary(g_file, 0x0800);
     load_binary(f_file, 0x1000);
     load_binary(e_file, 0x1800);
+}
+
+void reset_machine() {
+    reset_state(machine.processorState);
+}
+
+void key_press(Input inputType) {
+
+}
+
+void key_release(Input inputType) {
+
+}
+
+void run_machine() {
+    run(machine.processorState, true, 0x0);
 }

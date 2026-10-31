@@ -1,5 +1,5 @@
 #include "opcodes.h"
-#include "state.h"
+#include "emulator_state.h"
 
 uint16_t form_2_byte_from_1_bytes(const uint8_t highRegister, const uint8_t lowRegister) {
     uint16_t result = (uint16_t)highRegister << 8;
@@ -27,8 +27,8 @@ void nop(State* state) {
 
 void lxi(State* state, uint8_t* const highRegister, uint8_t* const lowRegister) {
     // Load extended immediate
-    *highRegister = state->readWriteMemory[state->programCounter + 2];
-    *lowRegister = state->readWriteMemory[state->programCounter + 1];
+    *highRegister = state->memory[state->programCounter + 2];
+    *lowRegister = state->memory[state->programCounter + 1];
     state->programCounter += 3;
 }
 
@@ -45,8 +45,8 @@ void lxi_h(State* state) {
 }
 
 void lxi_sp(State* state) {
-    state->stackPointer = ((uint16_t)state->readWriteMemory[state->programCounter + 2]) << 8;
-    state->stackPointer |= (uint16_t)state->readWriteMemory[state->programCounter + 1];
+    state->stackPointer = ((uint16_t)state->memory[state->programCounter + 2]) << 8;
+    state->stackPointer |= (uint16_t)state->memory[state->programCounter + 1];
     state->programCounter += 3;
 }
 
@@ -54,7 +54,7 @@ void lxi_sp(State* state) {
 
 void mvi(State* state, uint8_t* const dst) {
     // Move an immediate
-    *dst = state->readWriteMemory[state->programCounter + 1];
+    *dst = state->memory[state->programCounter + 1];
     state->programCounter += 2;
 }
 
@@ -88,7 +88,7 @@ void mvi_a(State* state) {
 
 void mvi_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mvi(state, &state->readWriteMemory[addr]);
+    mvi(state, &state->memory[addr]);
 }
 
 /////////////////////////////////////////// MOV ///////////////////////////////////////////
@@ -115,7 +115,7 @@ void mov_bl(State* state) {
 }
 void mov_bm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->B, &state->readWriteMemory[addr]);
+    mov(state, &state->B, &state->memory[addr]);
 }
 void mov_ba(State* state) {
     mov(state, &state->B, &state->A);
@@ -138,7 +138,7 @@ void mov_cl(State* state) {
 }
 void mov_cm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->C, &state->readWriteMemory[addr]);
+    mov(state, &state->C, &state->memory[addr]);
 }
 void mov_ca(State* state) {
     mov(state, &state->C, &state->A);
@@ -161,7 +161,7 @@ void mov_dl(State* state) {
 }
 void mov_dm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->D, &state->readWriteMemory[addr]);
+    mov(state, &state->D, &state->memory[addr]);
 }
 void mov_da(State* state) {
     mov(state, &state->D, &state->A);
@@ -184,7 +184,7 @@ void mov_el(State* state) {
 }
 void mov_em(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->E, &state->readWriteMemory[addr]);
+    mov(state, &state->E, &state->memory[addr]);
 }
 void mov_ea(State* state) {
     mov(state, &state->E, &state->A);
@@ -207,7 +207,7 @@ void mov_hl(State* state) {
 }
 void mov_hm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->H, &state->readWriteMemory[addr]);
+    mov(state, &state->H, &state->memory[addr]);
 }
 void mov_ha(State* state) {
     mov(state, &state->H, &state->A);
@@ -230,7 +230,7 @@ void mov_lh(State* state) {
 }
 void mov_lm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->L, &state->readWriteMemory[addr]);
+    mov(state, &state->L, &state->memory[addr]);
 }
 void mov_la(State* state) {
     mov(state, &state->L, &state->A);
@@ -238,31 +238,31 @@ void mov_la(State* state) {
 
 void mov_mb(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->readWriteMemory[addr], &state->C);
+    mov(state, &state->memory[addr], &state->C);
 }
 void mov_mc(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->readWriteMemory[addr], &state->C);
+    mov(state, &state->memory[addr], &state->C);
 }
 void mov_md(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->readWriteMemory[addr], &state->D);
+    mov(state, &state->memory[addr], &state->D);
 }
 void mov_me(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->readWriteMemory[addr], &state->E);
+    mov(state, &state->memory[addr], &state->E);
 }
 void mov_mh(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->readWriteMemory[addr], &state->H);
+    mov(state, &state->memory[addr], &state->H);
 }
 void mov_ml(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->readWriteMemory[addr], &state->L);
+    mov(state, &state->memory[addr], &state->L);
 }
 void mov_ma(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->readWriteMemory[addr], &state->A);
+    mov(state, &state->memory[addr], &state->A);
 }
 
 void mov_ab(State* state) {
@@ -285,7 +285,7 @@ void mov_al(State* state) {
 }
 void mov_am(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->A, &state->readWriteMemory[addr]);
+    mov(state, &state->A, &state->memory[addr]);
 }
 
 /////////////////////////////////////////// INR ///////////////////////////////////////////
@@ -327,7 +327,7 @@ void inr_l(State* state) {
 
 void inr_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    inr(state, &state->readWriteMemory[addr]);
+    inr(state, &state->memory[addr]);
 }
 
 void inr_a(State* state) {
@@ -400,7 +400,7 @@ void dcr_l(State* state) {
 
 void dcr_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    dcr(state, &state->readWriteMemory[addr]);
+    dcr(state, &state->memory[addr]);
 }
 
 void dcr_a(State* state) {
@@ -450,13 +450,13 @@ void stax_d(State* state) {
 
 void ldax_b(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->B, state->C);
-    state->A = state->readWriteMemory[addr];
+    state->A = state->memory[addr];
     ++state->programCounter;
 }
 
 void ldax_d(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->D, state->E);
-    state->A = state->readWriteMemory[addr];
+    state->A = state->memory[addr];
     ++state->programCounter;
 }
 
@@ -467,8 +467,8 @@ void sphl(State* state) {
 
 void sta(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        state->readWriteMemory[state->programCounter + 2],
-        state->readWriteMemory[state->programCounter + 1]
+        state->memory[state->programCounter + 2],
+        state->memory[state->programCounter + 1]
     );
     write_memory(addr, state->A);
     state->programCounter += 3;
@@ -476,17 +476,17 @@ void sta(State* state) {
 
 void lda(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        state->readWriteMemory[state->programCounter + 2],
-        state->readWriteMemory[state->programCounter + 1]
+        state->memory[state->programCounter + 2],
+        state->memory[state->programCounter + 1]
     );
-    state->A = state->readWriteMemory[addr];
+    state->A = state->memory[addr];
     state->programCounter += 3;
 }
 
 void shld(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        state->readWriteMemory[state->programCounter + 2],
-        state->readWriteMemory[state->programCounter + 1]
+        state->memory[state->programCounter + 2],
+        state->memory[state->programCounter + 1]
     );
     write_memory(addr, state->L);
     write_memory(addr + 1, state->H);
@@ -495,11 +495,11 @@ void shld(State* state) {
 
 void lhld(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(
-        state->readWriteMemory[state->programCounter + 2],
-        state->readWriteMemory[state->programCounter + 1]
+        state->memory[state->programCounter + 2],
+        state->memory[state->programCounter + 1]
     );
-    state->L = state->readWriteMemory[addr];
-    state->H = state->readWriteMemory[addr + 1];
+    state->L = state->memory[addr];
+    state->H = state->memory[addr + 1];
     state->programCounter += 3;
 }
 
@@ -517,10 +517,10 @@ void xchg(State* state) {
 
 void xthl(State* state) {
     uint8_t tmp = state->L;
-    state->L = state->readWriteMemory[state->stackPointer];
+    state->L = state->memory[state->stackPointer];
     write_memory(state->stackPointer, tmp);
     tmp = state->H;
-    state->H = state->readWriteMemory[state->stackPointer + 1];
+    state->H = state->memory[state->stackPointer + 1];
     write_memory(state->stackPointer + 1, tmp);
     ++state->programCounter;
 }
@@ -535,8 +535,8 @@ void pchl(State* state) {
 void jmp(State* state) {
     // NOTE: We do not increment PC after this
     state->programCounter = form_2_byte_from_1_bytes(
-        state->readWriteMemory[state->programCounter + 2],
-        state->readWriteMemory[state->programCounter + 1]
+        state->memory[state->programCounter + 2],
+        state->memory[state->programCounter + 1]
     );
 }
 
@@ -629,8 +629,8 @@ void push_psw(State* state) {
 }
 
 void pop(State* state, uint8_t* const highByte, uint8_t* const lowByte) {
-    *lowByte = state->readWriteMemory[state->stackPointer];
-    *highByte = state->readWriteMemory[state->stackPointer + 1];
+    *lowByte = state->memory[state->stackPointer];
+    *highByte = state->memory[state->stackPointer + 1];
     ++state->programCounter;
     state->stackPointer += 2;
 }
@@ -647,8 +647,8 @@ void pop_h(State* state) {
 }
 
 void pop_psw(State* state) {
-    state->A = state->readWriteMemory[state->stackPointer];
-    const uint8_t flags = state->readWriteMemory[state->stackPointer + 1];
+    state->A = state->memory[state->stackPointer];
+    const uint8_t flags = state->memory[state->stackPointer + 1];
     state->carry = flags & (uint8_t)1;
     state->parity= flags & (uint8_t)4;
     state->auxCarry = flags & (uint8_t)16;
@@ -777,7 +777,7 @@ void add_l(State* state) {
 
 void add_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    add(state, state->readWriteMemory[addr]);
+    add(state, state->memory[addr]);
 }
 
 void add_a(State* state) {
@@ -825,7 +825,7 @@ void adc_l(State* state) {
 
 void adc_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    adc(state, state->readWriteMemory[addr]);
+    adc(state, state->memory[addr]);
 }
 
 void adc_a(State* state) {
@@ -833,7 +833,7 @@ void adc_a(State* state) {
 }
 
 void adi(State* state) {
-    const uint8_t data = state->readWriteMemory[state->programCounter + 1];
+    const uint8_t data = state->memory[state->programCounter + 1];
     add(state, data);
     ++state->programCounter;    // add() already increments the counter, so we only need to move it along by 1 here
 }
@@ -841,7 +841,7 @@ void adi(State* state) {
 void aci(State* state) {
     // Technically there is a very slight unnecessary overhead from assigning the condition bits unnecessarily in the 
     // first call to add(), but we don't care about that.
-    const uint8_t data = state->readWriteMemory[state->programCounter + 1];
+    const uint8_t data = state->memory[state->programCounter + 1];
     adc(state, data);
     ++state->programCounter;    // adc() already increments the counter, so we only need to move it along by 1 here
 }
@@ -906,7 +906,7 @@ void sub_l(State* state) {
 
 void sub_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    sub(state, state->readWriteMemory[addr]);
+    sub(state, state->memory[addr]);
 }
 
 void sub_a(State* state) {
@@ -943,7 +943,7 @@ void sbb_l(State* state) {
 
 void sbb_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    sbb(state, state->readWriteMemory[addr]);
+    sbb(state, state->memory[addr]);
 }
 
 void sbb_a(State* state) {
@@ -951,13 +951,13 @@ void sbb_a(State* state) {
 }
 
 void sui(State* state) {
-    const uint8_t data = state->readWriteMemory[state->programCounter + 1];
+    const uint8_t data = state->memory[state->programCounter + 1];
     sub(state, data);
     ++state->programCounter;    // Need an extra increment (on top of the one sub() gives us)
 }
 
 void sbi(State* state) {
-    const uint8_t data = state->readWriteMemory[state->programCounter + 1];
+    const uint8_t data = state->memory[state->programCounter + 1];
     sbb(state, data);
     ++state->programCounter;    // Need an extra increment (on top of the one sub() gives us)
 }
@@ -1000,7 +1000,7 @@ void ana_l(State* state) {
 
 void ana_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    ana(state, state->readWriteMemory[addr]);
+    ana(state, state->memory[addr]);
 }
 
 void ana_a(State* state) {
@@ -1043,7 +1043,7 @@ void xra_l(State* state) {
 
 void xra_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    xra(state, state->readWriteMemory[addr]);
+    xra(state, state->memory[addr]);
 }
 
 void xra_a(State* state) {
@@ -1085,7 +1085,7 @@ void ora_l(State* state) {
 
 void ora_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    ora(state, state->readWriteMemory[addr]);
+    ora(state, state->memory[addr]);
 }
 
 void ora_a(State* state) {
@@ -1093,7 +1093,7 @@ void ora_a(State* state) {
 }
 
 void ani(State* state) {
-    const uint8_t data = state->readWriteMemory[state->programCounter + 1];
+    const uint8_t data = state->memory[state->programCounter + 1];
     state->A &= data;
     state->carry = false;
     assign_parity(state, state->A, 8);
@@ -1103,7 +1103,7 @@ void ani(State* state) {
 }
 
 void xri(State* state) {
-    const uint8_t data = state->readWriteMemory[state->programCounter + 1];
+    const uint8_t data = state->memory[state->programCounter + 1];
     state->A ^= data;
     state->carry = false;
     assign_parity(state, state->A, 8);
@@ -1113,7 +1113,7 @@ void xri(State* state) {
 }
 
 void ori(State* state) {
-    const uint8_t data = state->readWriteMemory[state->programCounter + 1];
+    const uint8_t data = state->memory[state->programCounter + 1];
     state->A |= data;
     state->carry = false;
     assign_parity(state, state->A, 8);
@@ -1167,7 +1167,7 @@ void cmp_l(State* state) {
 
 void cmp_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    cmp(state, state->readWriteMemory[addr]);
+    cmp(state, state->memory[addr]);
 }
 
 void cmp_a(State* state) {
@@ -1175,7 +1175,7 @@ void cmp_a(State* state) {
 }
 
 void cpi(State* state) {
-    const uint8_t data = state->readWriteMemory[state->programCounter + 1];
+    const uint8_t data = state->memory[state->programCounter + 1];
     cmp(state, data);
 }
 
@@ -1186,8 +1186,8 @@ void call(State* state) {
     write_memory(state->stackPointer - 2, (state->programCounter & 0xFF));
     state->stackPointer -= 2;
     state->programCounter = form_2_byte_from_1_bytes(
-        state->readWriteMemory[state->programCounter + 2],
-        state->readWriteMemory[state->programCounter + 1]
+        state->memory[state->programCounter + 2],
+        state->memory[state->programCounter + 1]
     );
 }
 
@@ -1256,8 +1256,8 @@ void cpo(State* state) {
 }
 
 void ret(State* state) {
-    state->programCounter &= (state->readWriteMemory[state->stackPointer + 1] << 8);
-    state->programCounter &= state->readWriteMemory[state->stackPointer + 0];
+    state->programCounter &= (state->memory[state->stackPointer + 1] << 8);
+    state->programCounter &= state->memory[state->stackPointer + 0];
 }
 
 void rc(State* state) {
@@ -1383,13 +1383,13 @@ void hlt(State* state) {
 /////////////////////////////////////////// INPUT/OUTPUT ///////////////////////////////////////////
 
 void in(State* state) {
-    uint8_t devNumber = state->readWriteMemory[state->programCounter + 1];
+    uint8_t devNumber = state->memory[state->programCounter + 1];
     state->A = state->deviceData[devNumber];
     state->programCounter += 2;
 }
 
 void out(State* state) {
-    uint8_t devNumber = state->readWriteMemory[state->programCounter + 1];
+    uint8_t devNumber = state->memory[state->programCounter + 1];
     state->deviceData[devNumber] = state->A;
     state->programCounter += 2;
 }
