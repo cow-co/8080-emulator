@@ -8,31 +8,26 @@ const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
 void run(State* state, const bool executeInstructions, const uint16_t fromAddr) {
     state->programCounter = fromAddr;
     while (state->programCounter < UINT16_MAX) {
-        if (executeInstructions) {
-            printf("NOT IMPLEMENTED YET!\n");
+        const unsigned char* const code = &state->memory[state->programCounter];
+        if (*code >= countOpcodes) {
+            printf("ERROR: Could not find opcode %04hhu!\n", *code);
             return;
+        }
+        const Opcode* const opcode = &opcodes[*code];
+
+        if (executeInstructions) {
+            opcode->opFn(state);
         } else {
-            const unsigned char* const code = &state->memory[state->programCounter];
-            if (*code >= countOpcodes) {
-                printf("ERROR: Could not find opcode %c!\n", *code);
-                return;
-            }
-            const Opcode* const opcode = &opcodes[*code];
-            if (opcode != nullptr) {
-                printf("%04hu ", state->programCounter);
-                if (opcode->opbytes == 2) {
-                    printf(opcode->assembly, code[1]);
-                } else if (opcode->opbytes == 3) {
-                    printf(opcode->assembly, code[2], code[1]);
-                } else {
-                    printf("%s", opcode->assembly);
-                }
-                printf("\n");
-                state->programCounter += opcode->opbytes;
+            printf("%04hu ", state->programCounter);
+            if (opcode->opbytes == 2) {
+                printf(opcode->assembly, code[1]);
+            } else if (opcode->opbytes == 3) {
+                printf(opcode->assembly, code[2], code[1]);
             } else {
-                printf("ERROR: Could not find opcode %c!\n", *code);
-                return;
+                printf("%s", opcode->assembly);
             }
+            printf("\n");
+            state->programCounter += opcode->opbytes;
         }
     }
 }
@@ -71,4 +66,15 @@ void reset_state(State* state) {
 
     memset(&state->memory, 0, sizeof(state->memory) / sizeof(uint8_t));
     memset(&state->deviceData, 0, sizeof(state->deviceData) / sizeof(uint8_t));
+}
+
+void interrupt(State* state, const uint8_t intByte) {
+    if (state->intEnabled) {
+        if (intByte >= countOpcodes) {
+            printf("ERROR: Could not find opcode %04hhu!\n", intByte);
+            return;
+        }
+        const Opcode* const opcode = &opcodes[intByte];
+        opcode->opFn(state);
+    }
 }

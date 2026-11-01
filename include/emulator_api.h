@@ -11,5 +11,6 @@ void run(State* state, const bool executeInstructions, const uint16_t fromAddr);
  */
 size_t load_binary(State* state, FILE* fp, const uint16_t addr);
 void reset_state(State* state);
+void interrupt(State* state, const uint8_t intByte);
 
 #endif

@@ -2,6 +2,13 @@
 #include "machine_state.h"
 #include "emulator_api.h"
 
+DisplayParams displayParams = {
+    .pixelsWidth = 224,
+    .pixelsHeight = 220,
+    .bytesPerPixel = 1,
+    .refreshInterval = 1./60.,
+};
+
 void load_rom() {
     FILE* h_file = fopen("./data/invaders.h", "rb");
     if (h_file == nullptr) {
