@@ -50,5 +50,7 @@ void key_release(Input inputType) {
 }
 
 void run_machine() {
-    run(machine.processorState, true, 0x0);
+    while (machine.processorState->programCounter < UINT16_MAX) {
+        run(machine.processorState, true);
+    }
 }

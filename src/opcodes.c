@@ -19,35 +19,38 @@ void assign_parity(State* state, unsigned value, size_t size) {
     state->parity = !(par & 0x01);
 }
 
-void nop(State* state) {
+uint8_t nop(State* state) {
     state->programCounter += 1;
+    return 4;
 }
 
 /////////////////////////////////////////// LXI ///////////////////////////////////////////
 
-void lxi(State* state, uint8_t* const highRegister, uint8_t* const lowRegister) {
+uint8_t lxi(State* state, uint8_t* const highRegister, uint8_t* const lowRegister) {
     // Load extended immediate
     *highRegister = state->memory[state->programCounter + 2];
     *lowRegister = state->memory[state->programCounter + 1];
     state->programCounter += 3;
+    return 10;
 }
 
-void lxi_b(State* state) {
-    lxi(state, &state->B, &state->C);
+uint8_t lxi_b(State* state) {
+    return lxi(state, &state->B, &state->C);
 }
 
-void lxi_d(State* state) {
-    lxi(state, &state->D, &state->E);
+uint8_t lxi_d(State* state) {
+    return lxi(state, &state->D, &state->E);
 }
 
-void lxi_h(State* state) {
-    lxi(state, &state->H, &state->L);
+uint8_t lxi_h(State* state) {
+    return lxi(state, &state->H, &state->L);
 }
 
-void lxi_sp(State* state) {
+uint8_t lxi_sp(State* state) {
     state->stackPointer = ((uint16_t)state->memory[state->programCounter + 2]) << 8;
     state->stackPointer |= (uint16_t)state->memory[state->programCounter + 1];
     state->programCounter += 3;
+    return 10;
 }
 
 /////////////////////////////////////////// MVI ///////////////////////////////////////////
@@ -58,37 +61,45 @@ void mvi(State* state, uint8_t* const dst) {
     state->programCounter += 2;
 }
 
-void mvi_b(State* state) {
+uint8_t mvi_b(State* state) {
     mvi(state, &state->B);
+    return 7;
 }
 
-void mvi_c(State* state) {
+uint8_t mvi_c(State* state) {
     mvi(state, &state->C);
+    return 7;
 }
 
-void mvi_d(State* state) {
+uint8_t mvi_d(State* state) {
     mvi(state, &state->D);
+    return 7;
 }
 
-void mvi_e(State* state) {
+uint8_t mvi_e(State* state) {
     mvi(state, &state->E);
+    return 7;
 }
 
-void mvi_h(State* state) {
+uint8_t mvi_h(State* state) {
     mvi(state, &state->H);
+    return 7;
 }
 
-void mvi_l(State* state) {
+uint8_t mvi_l(State* state) {
     mvi(state, &state->L);
+    return 7;
 }
 
-void mvi_a(State* state) {
+uint8_t mvi_a(State* state) {
     mvi(state, &state->A);
+    return 7;
 }
 
-void mvi_m(State* state) {
+uint8_t mvi_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mvi(state, &state->memory[addr]);
+    return 10;
 }
 
 /////////////////////////////////////////// MOV ///////////////////////////////////////////
@@ -98,194 +109,254 @@ void mov(State* state, uint8_t* const dst, uint8_t* const src) {
     ++state->programCounter;
 }
 
-void mov_bc(State* state) {
+uint8_t mov_bc(State* state) {
     mov(state, &state->B, &state->C);
+    return 5;
 }
-void mov_bd(State* state) {
+uint8_t mov_bd(State* state) {
     mov(state, &state->B, &state->D);
+    return 5;
 }
-void mov_be(State* state) {
+uint8_t mov_be(State* state) {
     mov(state, &state->B, &state->E);
+    return 5;
 }
-void mov_bh(State* state) {
+uint8_t mov_bh(State* state) {
     mov(state, &state->B, &state->H);
+    return 5;
 }
-void mov_bl(State* state) {
+uint8_t mov_bl(State* state) {
     mov(state, &state->B, &state->L);
+    return 5;
 }
-void mov_bm(State* state) {
+uint8_t mov_bm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->B, &state->memory[addr]);
+    return 7;
 }
-void mov_ba(State* state) {
+uint8_t mov_ba(State* state) {
     mov(state, &state->B, &state->A);
+    return 5;
 }
 
-void mov_cb(State* state) {
+uint8_t mov_cb(State* state) {
     mov(state, &state->C, &state->B);
+    return 5;
 }
-void mov_cd(State* state) {
+uint8_t mov_cd(State* state) {
     mov(state, &state->C, &state->D);
+    return 5;
 }
-void mov_ce(State* state) {
+uint8_t mov_ce(State* state) {
     mov(state, &state->C, &state->E);
+    return 5;
 }
-void mov_ch(State* state) {
+uint8_t mov_ch(State* state) {
     mov(state, &state->C, &state->H);
+    return 5;
 }
-void mov_cl(State* state) {
+uint8_t mov_cl(State* state) {
     mov(state, &state->C, &state->L);
+    return 5;
 }
-void mov_cm(State* state) {
+uint8_t mov_cm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->C, &state->memory[addr]);
+    return 7;
 }
-void mov_ca(State* state) {
+uint8_t mov_ca(State* state) {
     mov(state, &state->C, &state->A);
+    return 5;
 }
 
-void mov_db(State* state) {
+uint8_t mov_db(State* state) {
     mov(state, &state->D, &state->B);
+    return 5;
 }
-void mov_dc(State* state) {
+uint8_t mov_dc(State* state) {
     mov(state, &state->D, &state->C);
+    return 5;
 }
-void mov_de(State* state) {
+uint8_t mov_de(State* state) {
     mov(state, &state->D, &state->E);
+    return 5;
 }
-void mov_dh(State* state) {
+uint8_t mov_dh(State* state) {
     mov(state, &state->D, &state->H);
+    return 5;
 }
-void mov_dl(State* state) {
+uint8_t mov_dl(State* state) {
     mov(state, &state->D, &state->L);
+    return 5;
 }
-void mov_dm(State* state) {
+uint8_t mov_dm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->D, &state->memory[addr]);
+    return 7;
 }
-void mov_da(State* state) {
+uint8_t mov_da(State* state) {
     mov(state, &state->D, &state->A);
+    return 5;
 }
 
-void mov_eb(State* state) {
+uint8_t mov_eb(State* state) {
     mov(state, &state->E, &state->C);
+    return 5;
 }
-void mov_ec(State* state) {
+uint8_t mov_ec(State* state) {
     mov(state, &state->E, &state->C);
+    return 5;
 }
-void mov_ed(State* state) {
+uint8_t mov_ed(State* state) {
     mov(state, &state->E, &state->D);
+    return 5;
 }
-void mov_eh(State* state) {
+uint8_t mov_eh(State* state) {
     mov(state, &state->E, &state->H);
+    return 5;
 }
-void mov_el(State* state) {
+uint8_t mov_el(State* state) {
     mov(state, &state->E, &state->L);
+    return 5;
 }
-void mov_em(State* state) {
+uint8_t mov_em(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->E, &state->memory[addr]);
+    return 7;
 }
-void mov_ea(State* state) {
+uint8_t mov_ea(State* state) {
     mov(state, &state->E, &state->A);
+    return 5;
 }
 
-void mov_hb(State* state) {
+uint8_t mov_hb(State* state) {
     mov(state, &state->H, &state->C);
+    return 5;
 }
-void mov_hc(State* state) {
+uint8_t mov_hc(State* state) {
     mov(state, &state->H, &state->C);
+    return 5;
 }
-void mov_hd(State* state) {
+uint8_t mov_hd(State* state) {
     mov(state, &state->H, &state->D);
+    return 5;
 }
-void mov_he(State* state) {
+uint8_t mov_he(State* state) {
     mov(state, &state->H, &state->E);
+    return 5;
 }
-void mov_hl(State* state) {
+uint8_t mov_hl(State* state) {
     mov(state, &state->H, &state->L);
+    return 5;
 }
-void mov_hm(State* state) {
+uint8_t mov_hm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->H, &state->memory[addr]);
+    return 7;
 }
-void mov_ha(State* state) {
+uint8_t mov_ha(State* state) {
     mov(state, &state->H, &state->A);
+    return 5;
 }
 
-void mov_lb(State* state) {
+uint8_t mov_lb(State* state) {
     mov(state, &state->L, &state->C);
+    return 5;
 }
-void mov_lc(State* state) {
+uint8_t mov_lc(State* state) {
     mov(state, &state->L, &state->C);
+    return 5;
 }
-void mov_ld(State* state) {
+uint8_t mov_ld(State* state) {
     mov(state, &state->L, &state->D);
+    return 5;
 }
-void mov_le(State* state) {
+uint8_t mov_le(State* state) {
     mov(state, &state->L, &state->E);
+    return 5;
 }
-void mov_lh(State* state) {
+uint8_t mov_lh(State* state) {
     mov(state, &state->L, &state->H);
+    return 5;
 }
-void mov_lm(State* state) {
+uint8_t mov_lm(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->L, &state->memory[addr]);
+    return 7;
 }
-void mov_la(State* state) {
+uint8_t mov_la(State* state) {
     mov(state, &state->L, &state->A);
+    return 5;
 }
 
-void mov_mb(State* state) {
+uint8_t mov_mb(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->memory[addr], &state->C);
+    return 7;
 }
-void mov_mc(State* state) {
+uint8_t mov_mc(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->memory[addr], &state->C);
+    return 7;
 }
-void mov_md(State* state) {
+uint8_t mov_md(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->memory[addr], &state->D);
+    return 7;
 }
-void mov_me(State* state) {
+uint8_t mov_me(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->memory[addr], &state->E);
+    return 7;
 }
-void mov_mh(State* state) {
+uint8_t mov_mh(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->memory[addr], &state->H);
+    return 7;
 }
-void mov_ml(State* state) {
+uint8_t mov_ml(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->memory[addr], &state->L);
+    return 7;
 }
-void mov_ma(State* state) {
+uint8_t mov_ma(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->memory[addr], &state->A);
+    return 7;
 }
 
-void mov_ab(State* state) {
+uint8_t mov_ab(State* state) {
     mov(state, &state->A, &state->C);
+    return 5;
 }
-void mov_ac(State* state) {
+uint8_t mov_ac(State* state) {
     mov(state, &state->A, &state->C);
+    return 5;
 }
-void mov_ad(State* state) {
+uint8_t mov_ad(State* state) {
     mov(state, &state->A, &state->D);
+    return 5;
 }
-void mov_ae(State* state) {
+uint8_t mov_ae(State* state) {
     mov(state, &state->A, &state->E);
+    return 5;
 }
-void mov_ah(State* state) {
+uint8_t mov_ah(State* state) {
     mov(state, &state->A, &state->H);
+    return 5;
 }
-void mov_al(State* state) {
+uint8_t mov_al(State* state) {
     mov(state, &state->A, &state->L);
+    return 5;
 }
-void mov_am(State* state) {
+uint8_t mov_am(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     mov(state, &state->A, &state->memory[addr]);
+    return 7;
+}
+
+uint8_t mov_nop(State* state) {
+    return 5;
 }
 
 /////////////////////////////////////////// INR ///////////////////////////////////////////
@@ -301,64 +372,74 @@ void inr(State* state, uint8_t* const dst) {
     ++state->programCounter;
 }
 
-void inr_b(State* state) {
+uint8_t inr_b(State* state) {
     inr(state, &state->B);
+    return 5;
 }
 
-void inr_c(State* state) {
+uint8_t inr_c(State* state) {
     inr(state, &state->C);
+    return 5;
 }
 
-void inr_d(State* state) {
+uint8_t inr_d(State* state) {
     inr(state, &state->D);
+    return 5;
 }
 
-void inr_e(State* state) {
+uint8_t inr_e(State* state) {
     inr(state, &state->E);
+    return 5;
 }
 
-void inr_h(State* state) {
+uint8_t inr_h(State* state) {
     inr(state, &state->H);
+    return 5;
 }
 
-void inr_l(State* state) {
+uint8_t inr_l(State* state) {
     inr(state, &state->L);
+    return 5;
 }
 
-void inr_m(State* state) {
+uint8_t inr_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     inr(state, &state->memory[addr]);
+    return 10;
 }
 
-void inr_a(State* state) {
+uint8_t inr_a(State* state) {
     inr(state, &state->A);
+    return 5;
 }
 
 /////////////////////////////////////////// INX ///////////////////////////////////////////
 
-void inx(State* state, uint8_t* const highRegister, uint8_t* const lowRegister) {
+uint8_t inx(State* state, uint8_t* const highRegister, uint8_t* const lowRegister) {
     *lowRegister += 1;
     if (*lowRegister == 0) {
         *highRegister += 1;
     }
     ++state->programCounter;
+    return 5;
 }
 
-void inx_b(State* state) {
-    inx(state, &state->B, &state->C);
+uint8_t inx_b(State* state) {
+    return inx(state, &state->B, &state->C);
 }
 
-void inx_d(State* state) {
-    inx(state, &state->D, &state->E);
+uint8_t inx_d(State* state) {
+    return inx(state, &state->D, &state->E);
 }
 
-void inx_h(State* state) {
-    inx(state, &state->H, &state->L);
+uint8_t inx_h(State* state) {
+    return inx(state, &state->H, &state->L);
 }
 
-void inx_sp(State* state) {
+uint8_t inx_sp(State* state) {
     ++state->stackPointer;
     ++state->programCounter;
+    return 5;
 }
 
 /////////////////////////////////////////// DCR ///////////////////////////////////////////
@@ -374,116 +455,133 @@ void dcr(State* state, uint8_t* const reg) {
     ++state->programCounter;
 }
 
-void dcr_b(State* state) {
+uint8_t dcr_b(State* state) {
     dcr(state, &state->B);
+    return 5;
 }
 
-void dcr_c(State* state) {
+uint8_t dcr_c(State* state) {
     dcr(state, &state->C);
+    return 5;
 }
 
-void dcr_d(State* state) {
+uint8_t dcr_d(State* state) {
     dcr(state, &state->D);
+    return 5;
 }
 
-void dcr_e(State* state) {
+uint8_t dcr_e(State* state) {
     dcr(state, &state->E);
+    return 5;
 }
 
-void dcr_h(State* state) {
+uint8_t dcr_h(State* state) {
     dcr(state, &state->H);
+    return 5;
 }
 
-void dcr_l(State* state) {
+uint8_t dcr_l(State* state) {
     dcr(state, &state->L);
+    return 5;
 }
 
-void dcr_m(State* state) {
+uint8_t dcr_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     dcr(state, &state->memory[addr]);
+    return 10;
 }
 
-void dcr_a(State* state) {
+uint8_t dcr_a(State* state) {
     dcr(state, &state->A);
+    return 5;
 }
 
 /////////////////////////////////////////// DCX ///////////////////////////////////////////
 
-void dcx(State* state, uint8_t* const highRegister, uint8_t* const lowRegister) {
+uint8_t dcx(State* state, uint8_t* const highRegister, uint8_t* const lowRegister) {
     *lowRegister -= 1;
     if (*lowRegister == UINT8_MAX) {
         *highRegister -= 1;
     }
     ++state->programCounter;
+    return 5;
 }
 
-void dcx_b(State* state) {
-    dcx(state, &state->B, &state->C);
+uint8_t dcx_b(State* state) {
+    return dcx(state, &state->B, &state->C);
 }
 
-void dcx_d(State* state) {
-    dcx(state, &state->D, &state->E);
+uint8_t dcx_d(State* state) {
+    return dcx(state, &state->D, &state->E);
 }
 
-void dcx_h(State* state) {
-    dcx(state, &state->H, &state->L);
+uint8_t dcx_h(State* state) {
+    return dcx(state, &state->H, &state->L);
 }
 
-void dcx_sp(State* state) {
+uint8_t dcx_sp(State* state) {
     --state->stackPointer;
     ++state->programCounter;
+    return 5;
 }
 
 /////////////////////////////////////// LOAD/STORE ////////////////////////////////////////
 
-void stax_b(State* state) {
+uint8_t stax_b(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->B, state->C);
     write_memory(state, addr, state->A);
     ++state->programCounter;
+    return 7;
 }
 
-void stax_d(State* state) {
+uint8_t stax_d(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->D, state->E);
     write_memory(state, addr, state->A);
     ++state->programCounter;
+    return 7;
 }
 
-void ldax_b(State* state) {
+uint8_t ldax_b(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->B, state->C);
     state->A = state->memory[addr];
     ++state->programCounter;
+    return 7;
 }
 
-void ldax_d(State* state) {
+uint8_t ldax_d(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->D, state->E);
     state->A = state->memory[addr];
     ++state->programCounter;
+    return 7;
 }
 
-void sphl(State* state) {
+uint8_t sphl(State* state) {
     state->stackPointer = form_2_byte_from_1_bytes(state->H, state->L);
     ++state->programCounter;
+    return 5;
 }
 
-void sta(State* state) {
+uint8_t sta(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
     write_memory(state, addr, state->A);
     state->programCounter += 3;
+    return 13;
 }
 
-void lda(State* state) {
+uint8_t lda(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
     state->A = state->memory[addr];
     state->programCounter += 3;
+    return 13;
 }
 
-void shld(State* state) {
+uint8_t shld(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
@@ -491,9 +589,10 @@ void shld(State* state) {
     write_memory(state, addr, state->L);
     write_memory(state, addr + 1, state->H);
     state->programCounter += 3;
+    return 16;
 }
 
-void lhld(State* state) {
+uint8_t lhld(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
@@ -501,11 +600,12 @@ void lhld(State* state) {
     state->L = state->memory[addr];
     state->H = state->memory[addr + 1];
     state->programCounter += 3;
+    return 16;
 }
 
 /////////////////////////////////////// EXCHANGE ///////////////////////////////////////
 
-void xchg(State* state) {
+uint8_t xchg(State* state) {
     uint8_t tmp = state->D;
     state->D = state->H;
     state->H = tmp;
@@ -513,9 +613,10 @@ void xchg(State* state) {
     state->E = state->L;
     state->L = tmp;
     ++state->programCounter;
+    return 4;
 }
 
-void xthl(State* state) {
+uint8_t xthl(State* state) {
     uint8_t tmp = state->L;
     state->L = state->memory[state->stackPointer];
     write_memory(state, state->stackPointer, tmp);
@@ -523,130 +624,143 @@ void xthl(State* state) {
     state->H = state->memory[state->stackPointer + 1];
     write_memory(state, state->stackPointer + 1, tmp);
     ++state->programCounter;
+    return 18;
 }
 
 /////////////////////////////////////////// JUMP ///////////////////////////////////////////
 
-void pchl(State* state) {
+uint8_t pchl(State* state) {
     // NOTE: We do not increment PC after this
     state->programCounter = form_2_byte_from_1_bytes(state->H, state->L);
+    return 5;
 }
 
-void jmp(State* state) {
+uint8_t jmp(State* state) {
     // NOTE: We do not increment PC after this
     state->programCounter = form_2_byte_from_1_bytes(
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
+    return 10;
 }
 
-void jc(State* state) {
+uint8_t jc(State* state) {
     if (state->carry) {
         jmp(state);
     } else {
         state->programCounter += 3;
     }
+    return 10;
 }
 
-void jnc(State* state) {
+uint8_t jnc(State* state) {
     if (!state->carry) {
         jmp(state);
     } else {
         state->programCounter += 3;
     }
+    return 10;
 }
 
-void jz(State* state) {
+uint8_t jz(State* state) {
     if (state->zero) {
         jmp(state);
     } else {
         state->programCounter += 3;
     }
+    return 10;
 }
 
-void jnz(State* state) {
+uint8_t jnz(State* state) {
     if (!state->zero) {
         jmp(state);
     } else {
         state->programCounter += 3;
     }
+    return 10;
 }
 
-void jm(State* state) {
+uint8_t jm(State* state) {
     if (state->sign) {
         jmp(state);
     } else {
         state->programCounter += 3;
     }
+    return 10;
 }
 
-void jp(State* state) {
+uint8_t jp(State* state) {
     if (!state->sign) {
         jmp(state);
     } else {
         state->programCounter += 3;
     }
+    return 10;
 }
 
-void jpe(State* state) {
+uint8_t jpe(State* state) {
     if (state->parity) {
         jmp(state);
     } else {
         state->programCounter += 3;
     }
+    return 10;
 }
 
-void jpo(State* state) {
+uint8_t jpo(State* state) {
     if (!state->parity) {
         jmp(state);
     } else {
         state->programCounter += 3;
     }
+    return 10;
 }
 
 /////////////////////////////////////////// STACK ///////////////////////////////////////////
 
-void push(State* state, const uint8_t highByte, const uint8_t lowByte) {
+uint8_t push(State* state, const uint8_t highByte, const uint8_t lowByte) {
     write_memory(state, state->stackPointer - 1, highByte);
     write_memory(state, state->stackPointer - 2, lowByte);
     ++state->programCounter;
     state->stackPointer -= 2;
+    return 11;
 }
 
-void push_b(State* state) {
-    push(state, state->B, state->C);
+uint8_t push_b(State* state) {
+    return push(state, state->B, state->C);
 }
 
-void push_d(State* state) {
-    push(state, state->D, state->E);
+uint8_t push_d(State* state) {
+    return push(state, state->D, state->E);
 }
-void push_h(State* state) {
-    push(state, state->H, state->L);
-}
-
-void push_psw(State* state) {
-    push(state, state->A, flags(state));
+uint8_t push_h(State* state) {
+    return push(state, state->H, state->L);
 }
 
-void pop(State* state, uint8_t* const highByte, uint8_t* const lowByte) {
+uint8_t push_psw(State* state) {
+    return push(state, state->A, flags(state));
+}
+
+uint8_t pop(State* state, uint8_t* const highByte, uint8_t* const lowByte) {
     *lowByte = state->memory[state->stackPointer];
     *highByte = state->memory[state->stackPointer + 1];
     ++state->programCounter;
     state->stackPointer += 2;
+    return 10;
 }
 
-void pop_b(State* state) {
-    pop(state, &state->B, &state->C);
+uint8_t pop_b(State* state) {
+    return pop(state, &state->B, &state->C);
 }
 
-void pop_d(State* state) {
-    pop(state, &state->D, &state->E);
+uint8_t pop_d(State* state) {
+    return pop(state, &state->D, &state->E);
 }
-void pop_h(State* state) {
-    pop(state, &state->H, &state->L);
+uint8_t pop_h(State* state) {
+    return pop(state, &state->H, &state->L);
 }
 
-void pop_psw(State* state) {
+uint8_t pop_psw(State* state) {
     state->A = state->memory[state->stackPointer];
     const uint8_t flags = state->memory[state->stackPointer + 1];
     state->carry = flags & (uint8_t)1;
@@ -656,60 +770,68 @@ void pop_psw(State* state) {
     state->sign = flags & (uint8_t)128;
     ++state->programCounter;
     state->stackPointer += 2;
+    return 10;
 }
 
 /////////////////////////////////////////// ROTATE ///////////////////////////////////////////
 
-void rlc(State* state) {
+uint8_t rlc(State* state) {
     state->carry = state->A & (uint8_t)128;
     state->A = state->A << 1;
     state->A |= (uint8_t)state->carry;
     ++state->programCounter;
+    return 4;
 }
 
-void rrc(State* state) {
+uint8_t rrc(State* state) {
     state->carry = state->A & (uint8_t)1;
     state->A = state->A >> 1;
     state->A |= ((uint8_t)state->carry << 7);
     ++state->programCounter;
+    return 4;
 }
 
-void ral(State* state) {
+uint8_t ral(State* state) {
     const bool tmp = state->carry;
     state->carry = state->A & (uint8_t)128;
     state->A = state->A << 1;
     state->A |= (uint8_t)tmp;
     ++state->programCounter;
+    return 4;
 }
 
-void rar(State* state) {
+uint8_t rar(State* state) {
     const bool tmp = state->carry;
     state->carry = state->A & (uint8_t)1;
     state->A = state->A >> 1;
     state->A |= ((uint8_t)tmp << 7);
     ++state->programCounter;
+    return 4;
 }
 
 /////////////////////////////////////////// CARRY BIT ///////////////////////////////////////////
 
-void cmc(State* state) {
+uint8_t cmc(State* state) {
     state->carry = !state->carry;
     ++state->programCounter;
+    return 4;
 }
 
-void stc(State* state) {
+uint8_t stc(State* state) {
     state->carry = true;
     ++state->programCounter;
+    return 4;
 }
 
 /////////////////////////////////////////// ACCUMULATOR ///////////////////////////////////////////
 
-void cma(State* state) {
+uint8_t cma(State* state) {
     state->A = ~state->A;
     ++state->programCounter;
+    return 4;
 }
 
-void daa(State* state) {
+uint8_t daa(State* state) {
     // Decimal adjust accumulator: converts accumulator into two decimal digits
     const uint8_t lowNibble = state->A & 0b00001111;
     const bool lowNibbleGreaterThanNine = lowNibble > 9;
@@ -731,6 +853,7 @@ void daa(State* state) {
         state->A += 0b01100000;
     }
     ++state->programCounter;
+    return 4;
 }
 
 /////////////////////////////////////////// ARITHMETIC ///////////////////////////////////////////
@@ -751,37 +874,45 @@ void add(State* state, const uint8_t value) {
     ++state->programCounter;
 }
 
-void add_b(State* state) {
+uint8_t add_b(State* state) {
     add(state, state->B);
+    return 4;
 }
 
-void add_c(State* state) {
+uint8_t add_c(State* state) {
     add(state, state->C);
+    return 4;
 }
 
-void add_d(State* state) {
+uint8_t add_d(State* state) {
     add(state, state->D);
+    return 4;
 }
 
-void add_e(State* state) {
+uint8_t add_e(State* state) {
     add(state, state->E);
+    return 4;
 }
 
-void add_h(State* state) {
+uint8_t add_h(State* state) {
     add(state, state->H);
+    return 4;
 }
 
-void add_l(State* state) {
+uint8_t add_l(State* state) {
     add(state, state->L);
+    return 4;
 }
 
-void add_m(State* state) {
+uint8_t add_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     add(state, state->memory[addr]);
+    return 7;
 }
 
-void add_a(State* state) {
+uint8_t add_a(State* state) {
     add(state, state->A);
+    return 4;
 }
 
 void adc(State* state, const uint8_t value) {
@@ -799,54 +930,64 @@ void adc(State* state, const uint8_t value) {
     ++state->programCounter;
 }
 
-void adc_b(State* state) {
+uint8_t adc_b(State* state) {
     adc(state, state->B);
+    return 4;
 }
 
-void adc_c(State* state) {
+uint8_t adc_c(State* state) {
     adc(state, state->C);
+    return 4;
 }
 
-void adc_d(State* state) {
+uint8_t adc_d(State* state) {
     adc(state, state->D);
+    return 4;
 }
 
-void adc_e(State* state) {
+uint8_t adc_e(State* state) {
     adc(state, state->E);
+    return 4;
 }
 
-void adc_h(State* state) {
+uint8_t adc_h(State* state) {
     adc(state, state->H);
+    return 4;
 }
 
-void adc_l(State* state) {
+uint8_t adc_l(State* state) {
     adc(state, state->L);
+    return 4;
 }
 
-void adc_m(State* state) {
+uint8_t adc_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     adc(state, state->memory[addr]);
+    return 7;
 }
 
-void adc_a(State* state) {
+uint8_t adc_a(State* state) {
     adc(state, state->A);
+    return 4;
 }
 
-void adi(State* state) {
+uint8_t adi(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     add(state, data);
     ++state->programCounter;    // add() already increments the counter, so we only need to move it along by 1 here
+    return 7;
 }
 
-void aci(State* state) {
+uint8_t aci(State* state) {
     // Technically there is a very slight unnecessary overhead from assigning the condition bits unnecessarily in the 
     // first call to add(), but we don't care about that.
     const uint8_t data = state->memory[state->programCounter + 1];
     adc(state, data);
     ++state->programCounter;    // adc() already increments the counter, so we only need to move it along by 1 here
+    return 7;
 }
 
-void dad(State* state, const uint16_t value) {
+uint8_t dad(State* state, const uint16_t value) {
     const uint16_t hl = form_2_byte_from_1_bytes(state->H, state->L);
     uint32_t resCarried = value + hl;
     uint16_t res = hl + value;
@@ -854,24 +995,23 @@ void dad(State* state, const uint16_t value) {
     state->L = res & 0x00FF;
     state->carry = resCarried & 0x10000;
     ++state->programCounter;
+    return 10;
 }
 
-void dad_b(State* state) {
-    dad(state, form_2_byte_from_1_bytes(state->B, state->C));
+uint8_t dad_b(State* state) {
+    return dad(state, form_2_byte_from_1_bytes(state->B, state->C));
 }
 
-void dad_d(State* state) {
-    dad(state, form_2_byte_from_1_bytes(state->D, state->E));
-
+uint8_t dad_d(State* state) {
+    return dad(state, form_2_byte_from_1_bytes(state->D, state->E));
 }
 
-void dad_h(State* state) {
-    dad(state, form_2_byte_from_1_bytes(state->H, state->L));
-
+uint8_t dad_h(State* state) {
+    return dad(state, form_2_byte_from_1_bytes(state->H, state->L));
 }
 
-void dad_sp(State* state) {
-    dad(state, state->stackPointer);
+uint8_t dad_sp(State* state) {
+    return dad(state, state->stackPointer);
 }
 
 void sub(State* state, const uint8_t value) {
@@ -880,86 +1020,104 @@ void sub(State* state, const uint8_t value) {
     state->carry = !state->carry;
 }
 
-void sub_b(State* state) {
+uint8_t sub_b(State* state) {
     sub(state, state->B);
+    return 4;
 }
 
-void sub_c(State* state) {
+uint8_t sub_c(State* state) {
     sub(state, state->C);
+    return 4;
 }
 
-void sub_d(State* state) {
+uint8_t sub_d(State* state) {
     sub(state, state->D);
+    return 4;
 }
 
-void sub_e(State* state) {
+uint8_t sub_e(State* state) {
     sub(state, state->E);
+    return 4;
 }
 
-void sub_h(State* state) {
+uint8_t sub_h(State* state) {
     sub(state, state->H);
+    return 4;
 }
 
-void sub_l(State* state) {
+uint8_t sub_l(State* state) {
     sub(state, state->L);
+    return 4;
 }
 
-void sub_m(State* state) {
+uint8_t sub_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     sub(state, state->memory[addr]);
+    return 7;
 }
 
-void sub_a(State* state) {
+uint8_t sub_a(State* state) {
     sub(state, state->A);
+    return 4;
 }
 
 void sbb(State* state, const uint8_t value) {
     sub(state, value + state->carry);
 }
 
-void sbb_b(State* state) {
+uint8_t sbb_b(State* state) {
     sbb(state, state->B);
+    return 4;
 }
 
-void sbb_c(State* state) {
+uint8_t sbb_c(State* state) {
     sbb(state, state->C);
+    return 4;
 }
 
-void sbb_d(State* state) {
+uint8_t sbb_d(State* state) {
     sbb(state, state->D);
+    return 4;
 }
 
-void sbb_e(State* state) {
+uint8_t sbb_e(State* state) {
     sbb(state, state->E);
+    return 4;
 }
 
-void sbb_h(State* state) {
+uint8_t sbb_h(State* state) {
     sbb(state, state->H);
+    return 4;
 }
 
-void sbb_l(State* state) {
+uint8_t sbb_l(State* state) {
     sbb(state, state->L);
+    return 4;
 }
 
-void sbb_m(State* state) {
+uint8_t sbb_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     sbb(state, state->memory[addr]);
+    return 7;
 }
 
-void sbb_a(State* state) {
+uint8_t sbb_a(State* state) {
     sbb(state, state->A);
+    return 4;
 }
 
-void sui(State* state) {
+uint8_t sui(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     sub(state, data);
     ++state->programCounter;    // Need an extra increment (on top of the one sub() gives us)
+    return 7;
 }
 
-void sbi(State* state) {
+uint8_t sbi(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     sbb(state, data);
     ++state->programCounter;    // Need an extra increment (on top of the one sub() gives us)
+    return 7;
 }
 
 
@@ -974,37 +1132,45 @@ void ana(State* state, const uint8_t value) {
     ++state->programCounter;
 }
 
-void ana_b(State* state) {
+uint8_t ana_b(State* state) {
     ana(state, state->B);
+    return 4;
 }
 
-void ana_c(State* state) {
+uint8_t ana_c(State* state) {
     ana(state, state->C);
+    return 4;
 }
 
-void ana_d(State* state) {
+uint8_t ana_d(State* state) {
     ana(state, state->D);
+    return 4;
 }
 
-void ana_e(State* state) {
+uint8_t ana_e(State* state) {
     ana(state, state->E);
+    return 4;
 }
 
-void ana_h(State* state) {
+uint8_t ana_h(State* state) {
     ana(state, state->H);
+    return 4;
 }
 
-void ana_l(State* state) {
+uint8_t ana_l(State* state) {
     ana(state, state->L);
+    return 4;
 }
 
-void ana_m(State* state) {
+uint8_t ana_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     ana(state, state->memory[addr]);
+    return 7;
 }
 
-void ana_a(State* state) {
+uint8_t ana_a(State* state) {
     ana(state, state->A);
+    return 4;
 }
 
 void xra(State* state, const uint8_t value) {
@@ -1017,37 +1183,45 @@ void xra(State* state, const uint8_t value) {
     ++state->programCounter;
 }
 
-void xra_b(State* state) {
+uint8_t xra_b(State* state) {
     xra(state, state->B);
+    return 4;
 }
 
-void xra_c(State* state) {
+uint8_t xra_c(State* state) {
     xra(state, state->C);
+    return 4;
 }
 
-void xra_d(State* state) {
+uint8_t xra_d(State* state) {
     xra(state, state->D);
+    return 4;
 }
 
-void xra_e(State* state) {
+uint8_t xra_e(State* state) {
     xra(state, state->E);
+    return 4;
 }
 
-void xra_h(State* state) {
+uint8_t xra_h(State* state) {
     xra(state, state->H);
+    return 4;
 }
 
-void xra_l(State* state) {
+uint8_t xra_l(State* state) {
     xra(state, state->L);
+    return 4;
 }
 
-void xra_m(State* state) {
+uint8_t xra_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     xra(state, state->memory[addr]);
+    return 7;
 }
 
-void xra_a(State* state) {
+uint8_t xra_a(State* state) {
     xra(state, state->A);
+    return 4;
 }
 
 void ora(State* state, const uint8_t value) {
@@ -1059,40 +1233,48 @@ void ora(State* state, const uint8_t value) {
     ++state->programCounter;
 }
 
-void ora_b(State* state) {
+uint8_t ora_b(State* state) {
     ora(state, state->B);
+    return 4;
 }
 
-void ora_c(State* state) {
+uint8_t ora_c(State* state) {
     ora(state, state->C);
+    return 4;
 }
 
-void ora_d(State* state) {
+uint8_t ora_d(State* state) {
     ora(state, state->D);
+    return 4;
 }
 
-void ora_e(State* state) {
+uint8_t ora_e(State* state) {
     ora(state, state->E);
+    return 4;
 }
 
-void ora_h(State* state) {
+uint8_t ora_h(State* state) {
     ora(state, state->H);
+    return 4;
 }
 
-void ora_l(State* state) {
+uint8_t ora_l(State* state) {
     ora(state, state->L);
+    return 4;
 }
 
-void ora_m(State* state) {
+uint8_t ora_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     ora(state, state->memory[addr]);
+    return 7;
 }
 
-void ora_a(State* state) {
+uint8_t ora_a(State* state) {
     ora(state, state->A);
+    return 4;
 }
 
-void ani(State* state) {
+uint8_t ani(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     state->A &= data;
     state->carry = false;
@@ -1100,9 +1282,10 @@ void ani(State* state) {
     state->zero = !state->A;
     state->sign = state->A & 0b10000000;
     state->programCounter += 2;
+    return 7;
 }
 
-void xri(State* state) {
+uint8_t xri(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     state->A ^= data;
     state->carry = false;
@@ -1110,9 +1293,10 @@ void xri(State* state) {
     state->zero = !state->A;
     state->sign = state->A & 0b10000000;
     state->programCounter += 2;
+    return 7;
 }
 
-void ori(State* state) {
+uint8_t ori(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     state->A |= data;
     state->carry = false;
@@ -1120,6 +1304,7 @@ void ori(State* state) {
     state->zero = !state->A;
     state->sign = state->A & 0b10000000;
     state->programCounter += 2;
+    return 7;
 }
 
 void cmp(State* state, const uint8_t value) {
@@ -1141,47 +1326,56 @@ void cmp(State* state, const uint8_t value) {
     ++state->programCounter;
 }
 
-void cmp_b(State* state) {
+uint8_t cmp_b(State* state) {
     cmp(state, state->B);
+    return 4;
 }
 
-void cmp_c(State* state) {
+uint8_t cmp_c(State* state) {
     cmp(state, state->C);
+    return 4;
 }
 
-void cmp_d(State* state) {
+uint8_t cmp_d(State* state) {
     cmp(state, state->D);
+    return 4;
 }
 
-void cmp_e(State* state) {
+uint8_t cmp_e(State* state) {
     cmp(state, state->E);
+    return 4;
 }
 
-void cmp_h(State* state) {
+uint8_t cmp_h(State* state) {
     cmp(state, state->H);
+    return 4;
 }
 
-void cmp_l(State* state) {
+uint8_t cmp_l(State* state) {
     cmp(state, state->L);
+    return 4;
 }
 
-void cmp_m(State* state) {
+uint8_t cmp_m(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
     cmp(state, state->memory[addr]);
+    return 7;
 }
 
-void cmp_a(State* state) {
+uint8_t cmp_a(State* state) {
     cmp(state, state->A);
+    return 4;
 }
 
-void cpi(State* state) {
+uint8_t cpi(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     cmp(state, data);
+    return 7;
 }
 
 /////////////////////////////////////////// CALL/RET ///////////////////////////////////////////
 
-void call(State* state) {
+uint8_t call(State* state) {
     write_memory(state, state->stackPointer - 1, (state->programCounter >> 8));
     write_memory(state, state->stackPointer - 2, (state->programCounter & 0xFF));
     state->stackPointer -= 2;
@@ -1189,207 +1383,239 @@ void call(State* state) {
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
+    return 17;
 }
 
-void cc(State* state) {
+uint8_t cc(State* state) {
     if (state->carry) {
-        call(state);
+        return call(state);
     } else {
         state->programCounter += 3;
+        return 11;
     }
 }
 
-void cnc(State* state) {
+uint8_t cnc(State* state) {
     if (!state->carry) {
-        call(state);
+        return call(state);
     } else {
         state->programCounter += 3;
+        return 11;
     }
 }
 
-void cz(State* state) {
+uint8_t cz(State* state) {
     if (state->zero) {
-        call(state);
+        return call(state);
     } else {
         state->programCounter += 3;
+        return 11;
     }
 }
 
-void cnz(State* state) {
+uint8_t cnz(State* state) {
     if (!state->zero) {
-        call(state);
+        return call(state);
     } else {
         state->programCounter += 3;
+        return 11;
     }
 }
 
-void cm(State* state) {
+uint8_t cm(State* state) {
     if (state->sign) {
-        call(state);
+        return call(state);
     } else {
         state->programCounter += 3;
+        return 11;
     }
 }
 
-void cp(State* state) {
+uint8_t cp(State* state) {
     if (!state->sign) {
-        call(state);
+        return call(state);
     } else {
         state->programCounter += 3;
+        return 11;
     }
 }
 
-void cpe(State* state) {
+uint8_t cpe(State* state) {
     if (state->parity) {
-        call(state);
+        return call(state);
     } else {
         state->programCounter += 3;
+        return 11;
     }
 }
 
-void cpo(State* state) {
+uint8_t cpo(State* state) {
     if (!state->parity) {
-        call(state);
+        return call(state);
     } else {
         state->programCounter += 3;
+        return 11;
     }
 }
 
-void ret(State* state) {
+uint8_t ret(State* state) {
     state->programCounter &= (state->memory[state->stackPointer + 1] << 8);
     state->programCounter &= state->memory[state->stackPointer + 0];
+    return 10;
 }
 
-void rc(State* state) {
+uint8_t rc(State* state) {
     if (state->carry) {
         ret(state);
+        return 11;
     } else {
         state->programCounter += 3;
+        return 5;
     }
 }
 
-void rnc(State* state) {
+uint8_t rnc(State* state) {
     if (!state->carry) {
         ret(state);
+        return 11;
     } else {
         state->programCounter += 3;
+        return 5;
     }
 }
 
-void rz(State* state) {
+uint8_t rz(State* state) {
     if (state->zero) {
         ret(state);
+        return 11;
     } else {
         state->programCounter += 3;
+        return 5;
     }
 }
 
-void rnz(State* state) {
+uint8_t rnz(State* state) {
     if (!state->zero) {
         ret(state);
+        return 11;
     } else {
         state->programCounter += 3;
+        return 5;
     }
 }
 
-void rm(State* state) {
+uint8_t rm(State* state) {
     if (state->sign) {
         ret(state);
+        return 11;
     } else {
         state->programCounter += 3;
+        return 5;
     }
 }
 
-void rp(State* state) {
+uint8_t rp(State* state) {
     if (!state->sign) {
         ret(state);
+        return 11;
     } else {
         state->programCounter += 3;
+        return 5;
     }
 }
 
-void rpe(State* state) {
+uint8_t rpe(State* state) {
     if (state->parity) {
         ret(state);
+        return 11;
     } else {
         state->programCounter += 3;
+        return 5;
     }
 }
 
-void rpo(State* state) {
+uint8_t rpo(State* state) {
     if (!state->parity) {
         ret(state);
+        return 11;
     } else {
         state->programCounter += 3;
+        return 5;
     }
 }
 
 /////////////////////////////////////////// INTERRUPTS/RESTARTS ///////////////////////////////////////////
 
-void rst(State* state, const uint8_t exp) {
+uint8_t rst(State* state, const uint8_t exp) {
     write_memory(state, state->stackPointer - 1, (state->programCounter >> 8));
     write_memory(state, state->stackPointer - 2, (state->programCounter & 0xFF));
     state->stackPointer -= 2;
     state->programCounter = (uint16_t)(exp ^ 0b11000111);
+    return 11;
 }
 
-void rst_0(State* state) {
-    rst(state, 0);
+uint8_t rst_0(State* state) {
+    return rst(state, 0);
 }
 
-void rst_1(State* state) {
-    rst(state, 1);
+uint8_t rst_1(State* state) {
+    return rst(state, 1);
 }
 
-void rst_2(State* state) {
-    rst(state, 2);
+uint8_t rst_2(State* state) {
+    return rst(state, 2);
 }
 
-void rst_3(State* state) {
-    rst(state, 3);
+uint8_t rst_3(State* state) {
+    return rst(state, 3);
 }
 
-void rst_4(State* state) {
-    rst(state, 4);
+uint8_t rst_4(State* state) {
+    return rst(state, 4);
 }
 
-void rst_5(State* state) {
-    rst(state, 5);
+uint8_t rst_5(State* state) {
+    return rst(state, 5);
 }
 
-void rst_6(State* state) {
-    rst(state, 6);
+uint8_t rst_6(State* state) {
+    return rst(state, 6);
 }
 
-void rst_7(State* state) {
-    rst(state, 7);
+uint8_t rst_7(State* state) {
+    return rst(state, 7);
 }
 
-void ei(State* state) {
+uint8_t ei(State* state) {
     state->intEnabled = true;
     ++state->programCounter;
+    return 4;
 }
 
-void di(State* state) {
+uint8_t di(State* state) {
     state->intEnabled = false;
     ++state->programCounter;
+    return 4;
 }
 
-void hlt(State* state) {
+uint8_t hlt(State* state) {
     ++state->programCounter;
     state->halted = true;
+    return 7;
 }
 
 /////////////////////////////////////////// INPUT/OUTPUT ///////////////////////////////////////////
 
-void in(State* state) {
+uint8_t in(State* state) {
     uint8_t devNumber = state->memory[state->programCounter + 1];
     state->A = state->deviceData[devNumber];
     state->programCounter += 2;
+    return 10;
 }
 
-void out(State* state) {
+uint8_t out(State* state) {
     uint8_t devNumber = state->memory[state->programCounter + 1];
     state->deviceData[devNumber] = state->A;
     state->programCounter += 2;
+    return 10;
 }

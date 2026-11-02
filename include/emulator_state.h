@@ -33,6 +33,8 @@ typedef struct {
     uint8_t memory[UINT16_MAX];
 
     uint8_t deviceData[UINT8_MAX + 1];
+
+    long lastOpEndsAt;
 } State;
 
 void write_memory(State* state, const uint16_t addr, const uint8_t data);

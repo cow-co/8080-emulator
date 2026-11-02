@@ -2,33 +2,41 @@
 #include "processor.h"
 #include "emulator_state.h"
 #include <string.h>
+#include <time.h>
 
 const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
+const double cyclePeriodMicros = 0.5;
+const long clocksPerMicro = CLOCKS_PER_SEC / 1'000'000;
 
-void run(State* state, const bool executeInstructions, const uint16_t fromAddr) {
-    state->programCounter = fromAddr;
-    while (state->programCounter < UINT16_MAX) {
-        const unsigned char* const code = &state->memory[state->programCounter];
-        if (*code >= countOpcodes) {
-            printf("ERROR: Could not find opcode %04hhu!\n", *code);
-            return;
-        }
-        const Opcode* const opcode = &opcodes[*code];
+void run(State* state, const bool executeInstructions) {
+    if (state->lastOpEndsAt > clock()) {
+        return;
+    }
+    const unsigned char* const code = &state->memory[state->programCounter];
+    if (*code >= countOpcodes) {
+        printf("ERROR: Could not find opcode %04hhu!\n", *code);
+        return;
+    }
+    const Opcode* const opcode = &opcodes[*code];
 
-        if (executeInstructions) {
-            opcode->opFn(state);
+    if (executeInstructions) {
+        const uint8_t cycles = opcode->opFn(state);
+        if (state->lastOpEndsAt == 0) {
+            state->lastOpEndsAt = clock() + (cyclePeriodMicros * cycles * clocksPerMicro);
         } else {
-            printf("%04hu ", state->programCounter);
-            if (opcode->opbytes == 2) {
-                printf(opcode->assembly, code[1]);
-            } else if (opcode->opbytes == 3) {
-                printf(opcode->assembly, code[2], code[1]);
-            } else {
-                printf("%s", opcode->assembly);
-            }
-            printf("\n");
-            state->programCounter += opcode->opbytes;
+            state->lastOpEndsAt += cyclePeriodMicros * cycles * clocksPerMicro;
         }
+    } else {
+        printf("%04hu ", state->programCounter);
+        if (opcode->opbytes == 2) {
+            printf(opcode->assembly, code[1]);
+        } else if (opcode->opbytes == 3) {
+            printf(opcode->assembly, code[2], code[1]);
+        } else {
+            printf("%s", opcode->assembly);
+        }
+        printf("\n");
+        state->programCounter += opcode->opbytes;
     }
 }
 
@@ -63,6 +71,7 @@ void reset_state(State* state) {
 
     state->intEnabled = false;
     state->halted = false;
+    state->lastOpEndsAt = 0;   // The 8080 runs at 2MHz
 
     memset(&state->memory, 0, sizeof(state->memory) / sizeof(uint8_t));
     memset(&state->deviceData, 0, sizeof(state->deviceData) / sizeof(uint8_t));
