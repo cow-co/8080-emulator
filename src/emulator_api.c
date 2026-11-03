@@ -74,7 +74,8 @@ void reset_state(State* state) {
     state->lastOpEndsAt = 0;   // The 8080 runs at 2MHz
 
     memset(&state->memory, 0, sizeof(state->memory) / sizeof(uint8_t));
-    memset(&state->deviceData, 0, sizeof(state->deviceData) / sizeof(uint8_t));
+    memset(&state->inputData, 0, sizeof(state->inputData) / sizeof(uint8_t));
+    memset(&state->outputData, 0, sizeof(state->outputData) / sizeof(uint8_t));
 }
 
 void interrupt(State* state, const uint8_t intByte) {
