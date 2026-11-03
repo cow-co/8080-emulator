@@ -35,7 +35,7 @@ extern const char* const sfx_files[];
 typedef struct {
     unsigned pixelsWidth;
     unsigned pixelsHeight;
-    unsigned bytesPerPixel;
+    unsigned bitsPerPixel;
     double refreshInterval;
 } DisplayParams;
 

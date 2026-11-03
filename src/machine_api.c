@@ -4,8 +4,8 @@
 
 DisplayParams displayParams = {
     .pixelsWidth = 224,
-    .pixelsHeight = 220,
-    .bytesPerPixel = 1,
+    .pixelsHeight = 256,
+    .bitsPerPixel = 1,
     .refreshInterval = 1./60.,
 };
 
