@@ -19,8 +19,14 @@ void interrupt(const uint8_t intByte);
  * Internally clamps `bit` to 0-7
  */
 void set_bit_on_input_port(const uint8_t port, const uint8_t bit);
+/**
+ * Internally clamps `bit` to 0-7
+ */
+void unset_bit_on_input_port(const uint8_t port, const uint8_t bit);
 void set_input_port(const uint8_t port, const uint8_t value);
+void unset_input_port(const uint8_t port);
 const uint8_t read_output_port(const uint8_t port);
+const uint8_t* const read_memory(const uint16_t fromAddr);
 
 extern const double cyclePeriodMicros;
 

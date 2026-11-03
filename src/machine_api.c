@@ -4,7 +4,7 @@
 #include <time.h>
 
 
-DisplayParams displayParams = {
+const DisplayParams displayParams = {
     .pixelsWidth = 224,
     .pixelsHeight = 256,
     .bitsPerPixel = 1,
@@ -104,34 +104,34 @@ void key_release(Input inputType) {
     switch (inputType)
     {
         case COIN_INSERT:
-            machine.processorState->inputData[1] &= 0b11111110;
-            break;
-        case P1_LEFT:
-            machine.processorState->inputData[1] &= 0b11011111;
-            break;
-        case P1_RIGHT:
-            machine.processorState->inputData[1] &= 0b10111111;
-            break;
-        case P1_SHOOT:
-            machine.processorState->inputData[1] &= 0b11101111;
-            break;
-        case P1_START:
-            machine.processorState->inputData[1] &= 0b11111011;
-            break;
-        case P2_LEFT:
-            machine.processorState->inputData[2] &= 0b11011111;
-            break;
-        case P2_RIGHT:
-            machine.processorState->inputData[2] &= 0b10111111;
-            break;
-        case P2_SHOOT:
-            machine.processorState->inputData[2] &= 0b11101111;
+            unset_bit_on_input_port(1, 0);
             break;
         case P2_START:
-            machine.processorState->inputData[1] &= 0b11111101;
+            unset_bit_on_input_port(1, 1);
+            break;
+        case P1_START:
+            unset_bit_on_input_port(1, 2);
+            break;
+        case P1_SHOOT:
+            unset_bit_on_input_port(1, 4);
+            break;
+        case P1_LEFT:
+            unset_bit_on_input_port(1, 5);
+            break;
+        case P1_RIGHT:
+            unset_bit_on_input_port(1, 6);
             break;
         case TILT:
-            machine.processorState->inputData[2] &= 0b11111011;
+            unset_bit_on_input_port(2, 2);
+            break;
+        case P2_SHOOT:
+            unset_bit_on_input_port(2, 4);
+            break;
+        case P2_LEFT:
+            unset_bit_on_input_port(2, 5);
+            break;
+        case P2_RIGHT:
+            unset_bit_on_input_port(2, 6);
             break;
         
         default:
@@ -150,31 +150,31 @@ void run_machine() {
 }
 
 const uint8_t* const graphics_state() {
-    return &machine.processorState->memory[0x2400];
+    return read_memory(0x2400);
 }
 
 const SFX_TYPE queued_sfx() {
-    if (machine.processorState->outputData[3] & 0b00000001) {
+    if (read_output_port(3) & 0b00000001) {
         return SOUND_UFO;
-    } else if (machine.processorState->outputData[3] & 0b00000010) {
+    } else if (read_output_port(3) & 0b00000010) {
         return SOUND_SHOOT;
-    } else if (machine.processorState->outputData[3] & 0b00000100) {
+    } else if (read_output_port(3) & 0b00000100) {
         return SOUND_DEATH;
-    } else if (machine.processorState->outputData[3] & 0b00001000) {
+    } else if (read_output_port(3) & 0b00001000) {
         return SOUND_KILL;
-    } else if (machine.processorState->outputData[3] & 0b00010000) {
+    } else if (read_output_port(3) & 0b00010000) {
         return SOUND_EXTENDED_PLAY;
-    } else if (machine.processorState->outputData[3] & 0b00100000) {
+    } else if (read_output_port(3) & 0b00100000) {
         return SOUND_AMP_ENABLE;
-    } else if (machine.processorState->outputData[5] & 0b00000001) {
+    } else if (read_output_port(5) & 0b00000001) {
         return SOUND_FLEET_1;
-    } else if (machine.processorState->outputData[5] & 0b00000010) {
+    } else if (read_output_port(5) & 0b00000010) {
         return SOUND_FLEET_2;
-    } else if (machine.processorState->outputData[5] & 0b00000100) {
+    } else if (read_output_port(5) & 0b00000100) {
         return SOUND_FLEET_3;
-    } else if (machine.processorState->outputData[5] & 0b00001000) {
+    } else if (read_output_port(5) & 0b00001000) {
         return SOUND_FLEET_4;
-    } else if (machine.processorState->outputData[5] & 0b00010000) {
+    } else if (read_output_port(5) & 0b00010000) {
         return SOUND_UFO_HIT;
     }
     return SOUND_NONE;

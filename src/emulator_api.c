@@ -93,7 +93,7 @@ void interrupt(const uint8_t intByte) {
 
 void set_bit_on_input_port(const uint8_t port, const uint8_t bit) {
     if (bit > 7) {
-        state.inputData[port] |= (uint8_t)(0xFF);
+        state.inputData[port] |= (uint8_t)(0x80);
     } else {
         state.inputData[port] |= (uint8_t)(1 << bit);
     }
@@ -105,6 +105,25 @@ void set_input_port(const uint8_t port, const uint8_t value) {
 }
 
 
+void unset_bit_on_input_port(const uint8_t port, const uint8_t bit) {
+    if (bit > 7) {
+        state.inputData[port] &= (uint8_t)(0b01111111);
+    } else {
+        state.inputData[port] &= (uint8_t)((1 << bit) ^ 0xFF);
+    }
+}
+
+
+void unset_input_port(const uint8_t port) {
+    state.inputData[port] = 0;
+}
+
+
 const uint8_t read_output_port(const uint8_t port) {
     return state.outputData[port];
+}
+
+
+const uint8_t* const read_memory(const uint16_t fromAddr) {
+    return &state.memory[fromAddr];
 }

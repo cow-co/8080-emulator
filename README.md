@@ -33,6 +33,14 @@ Functions exposed:
 - `run()`: Executes the code loaded into memory. Alternatively: generates a disassembly of the binary.
 - `load_binary()`: Loads a binary file into memory. _Caller_ closes the file pointer!
 - `reset_state()`: Resets the state of the 8080 and memory.
+- `interrupt()`
+- `set_bit_on_input_port()`
+- `set_input_port()`
+- `unset_bit_on_input_port()`
+- `unset_input_port()`
+- `read_output_port()`
+- `read_memory()`
+- `cyclePeriodMicros`
 
 ### Machine Layer API
 

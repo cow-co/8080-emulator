@@ -1608,14 +1608,14 @@ uint8_t hlt(State* state) {
 
 uint8_t in(State* state) {
     uint8_t devNumber = state->memory[state->programCounter + 1];
-    state->A = state->deviceData[devNumber];
+    state->A = state->inputData[devNumber];
     state->programCounter += 2;
     return 10;
 }
 
 uint8_t out(State* state) {
     uint8_t devNumber = state->memory[state->programCounter + 1];
-    state->deviceData[devNumber] = state->A;
+    state->outputData[devNumber] = state->A;
     state->programCounter += 2;
     return 10;
 }
