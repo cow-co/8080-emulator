@@ -38,6 +38,8 @@ typedef struct {
     long lastOpEndsAt;
 } State;
 
+extern State state;
+
 void write_memory(State* state, const uint16_t addr, const uint8_t data);
 
 // Flags byte has bits set like so:

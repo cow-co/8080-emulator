@@ -8,11 +8,11 @@ const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
 const double cyclePeriodMicros = 0.5;
 const long clocksPerMicro = CLOCKS_PER_SEC / 1'000'000;
 
-void run(State* state, const bool executeInstructions) {
-    if (state->lastOpEndsAt > clock()) {
+void run(const bool executeInstructions) {
+    if (state.lastOpEndsAt > clock()) {
         return;
     }
-    const unsigned char* const code = &state->memory[state->programCounter];
+    const unsigned char* const code = &state.memory[state.programCounter];
     if (*code >= countOpcodes) {
         printf("ERROR: Could not find opcode %04hhu!\n", *code);
         return;
@@ -20,14 +20,14 @@ void run(State* state, const bool executeInstructions) {
     const Opcode* const opcode = &opcodes[*code];
 
     if (executeInstructions) {
-        const uint8_t cycles = opcode->opFn(state);
-        if (state->lastOpEndsAt == 0) {
-            state->lastOpEndsAt = clock() + (cyclePeriodMicros * cycles * clocksPerMicro);
+        const uint8_t cycles = opcode->opFn(&state);
+        if (state.lastOpEndsAt == 0) {
+            state.lastOpEndsAt = clock() + (cyclePeriodMicros * cycles * clocksPerMicro);
         } else {
-            state->lastOpEndsAt += cyclePeriodMicros * cycles * clocksPerMicro;
+            state.lastOpEndsAt += cyclePeriodMicros * cycles * clocksPerMicro;
         }
     } else {
-        printf("%04hu ", state->programCounter);
+        printf("%04hu ", state.programCounter);
         if (opcode->opbytes == 2) {
             printf(opcode->assembly, code[1]);
         } else if (opcode->opbytes == 3) {
@@ -36,55 +36,75 @@ void run(State* state, const bool executeInstructions) {
             printf("%s", opcode->assembly);
         }
         printf("\n");
-        state->programCounter += opcode->opbytes;
+        state.programCounter += opcode->opbytes;
     }
 }
 
-size_t load_binary(State* state, FILE* fp, const uint16_t addr) {
+size_t load_binary(FILE* fp, const uint16_t addr) {
     fseek(fp, 0L, SEEK_END);
     size_t fileSize = ftell(fp);
     fseek(fp, 0L, SEEK_SET);
     if (fileSize > UINT16_MAX) {
         fileSize = UINT16_MAX;
     }
-    fread(&state->memory[addr], fileSize, 1, fp);
+    fread(&state.memory[addr], fileSize, 1, fp);
     return fileSize;
 }
 
-void reset_state(State* state) {
-    state->programCounter = 0;
-    state->stackPointer = 0;
+void reset_state() {
+    state.programCounter = 0;
+    state.stackPointer = 0;
     
-    state->B = 0;
-    state->C = 0;
-    state->D = 0;
-    state->E = 0;
-    state->H = 0;
-    state->L = 0;
-    state->A = 0;
+    state.B = 0;
+    state.C = 0;
+    state.D = 0;
+    state.E = 0;
+    state.H = 0;
+    state.L = 0;
+    state.A = 0;
 
-    state->carry = false;
-    state->parity = false;
-    state->auxCarry = false;
-    state->zero = false;
-    state->sign = false;
+    state.carry = false;
+    state.parity = false;
+    state.auxCarry = false;
+    state.zero = false;
+    state.sign = false;
 
-    state->intEnabled = false;
-    state->halted = false;
-    state->lastOpEndsAt = 0;   // The 8080 runs at 2MHz
+    state.intEnabled = false;
+    state.halted = false;
+    state.lastOpEndsAt = 0;   // The 8080 runs at 2MHz
 
-    memset(&state->memory, 0, sizeof(state->memory) / sizeof(uint8_t));
-    memset(&state->inputData, 0, sizeof(state->inputData) / sizeof(uint8_t));
-    memset(&state->outputData, 0, sizeof(state->outputData) / sizeof(uint8_t));
+    memset(&state.memory, 0, sizeof(state.memory) / sizeof(uint8_t));
+    memset(&state.inputData, 0, sizeof(state.inputData) / sizeof(uint8_t));
+    memset(&state.outputData, 0, sizeof(state.outputData) / sizeof(uint8_t));
 }
 
-void interrupt(State* state, const uint8_t intByte) {
-    if (state->intEnabled) {
+
+void interrupt(const uint8_t intByte) {
+    if (state.intEnabled) {
         if (intByte >= countOpcodes) {
             printf("ERROR: Could not find opcode %04hhu!\n", intByte);
             return;
         }
         const Opcode* const opcode = &opcodes[intByte];
-        opcode->opFn(state);
+        opcode->opFn(&state);
     }
+}
+
+
+void set_bit_on_input_port(const uint8_t port, const uint8_t bit) {
+    if (bit > 7) {
+        state.inputData[port] |= (uint8_t)(0xFF);
+    } else {
+        state.inputData[port] |= (uint8_t)(1 << bit);
+    }
+}
+
+
+void set_input_port(const uint8_t port, const uint8_t value) {
+    state.inputData[port] = value;
+}
+
+
+const uint8_t read_output_port(const uint8_t port) {
+    return state.outputData[port];
 }

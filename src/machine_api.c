@@ -1,6 +1,8 @@
 #include "machine_api.h"
 #include "machine_state.h"
 #include "emulator_api.h"
+#include <time.h>
+
 
 DisplayParams displayParams = {
     .pixelsWidth = 224,
@@ -10,6 +12,7 @@ DisplayParams displayParams = {
 };
 
 const char* const sfx_files[] = {
+    "",
     "./data/0.wav",
     "./data/1.wav",
     "./data/2.wav",
@@ -17,6 +20,10 @@ const char* const sfx_files[] = {
     "./data/4.wav",
     "./data/5.wav",
     "./data/6.wav",
+    "./data/7.wav",
+    "./data/8.wav",
+    "./data/9.wav",
+    "./data/10.wav",
 };
 
 void load_rom() {
@@ -41,51 +48,51 @@ void load_rom() {
         return;
     }
     
-    load_binary(machine.processorState, h_file, 0x0000);
-    load_binary(machine.processorState, g_file, 0x0800);
-    load_binary(machine.processorState, f_file, 0x1000);
-    load_binary(machine.processorState, e_file, 0x1800);
+    load_binary(h_file, 0x0000);
+    load_binary(g_file, 0x0800);
+    load_binary(f_file, 0x1000);
+    load_binary(e_file, 0x1800);
 }
 
 void reset_machine() {
-    reset_state(machine.processorState);
+    reset_state();
     // Certain input bits are always set
-    machine.processorState->inputData[0] = 0b00001110;
-    machine.processorState->inputData[1] = 0b00001000;
+    set_input_port(0, 0b00001110);
+    set_input_port(1, 0b00001000);
 }
 
 void key_press(Input inputType) {
     switch (inputType)
     {
         case COIN_INSERT:
-            machine.processorState->inputData[1] |= 0b00000001;
-            break;
-        case P1_LEFT:
-            machine.processorState->inputData[1] |= 0b00100000;
-            break;
-        case P1_RIGHT:
-            machine.processorState->inputData[1] |= 0b01000000;
-            break;
-        case P1_SHOOT:
-            machine.processorState->inputData[1] |= 0b00010000;
-            break;
-        case P1_START:
-            machine.processorState->inputData[1] |= 0b00000100;
-            break;
-        case P2_LEFT:
-            machine.processorState->inputData[2] |= 0b00100000;
-            break;
-        case P2_RIGHT:
-            machine.processorState->inputData[2] |= 0b01000000;
-            break;
-        case P2_SHOOT:
-            machine.processorState->inputData[2] |= 0b00010000;
+            set_bit_on_input_port(1, 0);
             break;
         case P2_START:
-            machine.processorState->inputData[1] |= 0b00000010;
+            set_bit_on_input_port(1, 1);
+            break;
+        case P1_START:
+            set_bit_on_input_port(1, 2);
+            break;
+        case P1_SHOOT:
+            set_bit_on_input_port(1, 4);
+            break;
+        case P1_LEFT:
+            set_bit_on_input_port(1, 5);
+            break;
+        case P1_RIGHT:
+            set_bit_on_input_port(1, 6);
             break;
         case TILT:
-            machine.processorState->inputData[2] |= 0b00000100;
+            set_bit_on_input_port(2, 2);
+            break;
+        case P2_SHOOT:
+            set_bit_on_input_port(2, 4);
+            break;
+        case P2_LEFT:
+            set_bit_on_input_port(2, 5);
+            break;
+        case P2_RIGHT:
+            set_bit_on_input_port(2, 6);
             break;
         
         default:
@@ -133,9 +140,12 @@ void key_release(Input inputType) {
 }
 
 void run_machine() {
-    while (machine.processorState->programCounter < UINT16_MAX) {
-        run(machine.processorState, true);
-        // TODO Check for middle/end of VBlank and, if so, send the relevant interrupt
+    machine.lastVBlank = clock();
+    run(true);
+    const bool vblankInterrupt = (clock() - machine.lastVBlank) > (displayParams.refreshInterval * CLOCKS_PER_SEC);
+    if (vblankInterrupt) {
+        interrupt(0xD7);  // RST 2
+        machine.lastVBlank = clock();
     }
 }
 

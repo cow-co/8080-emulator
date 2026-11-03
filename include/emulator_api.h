@@ -7,14 +7,20 @@
 /**
  * Runs one iteration (one instruction) of the emulator
  */
-void run(State* state, const bool executeInstructions);
+void run(const bool executeInstructions);
 
 /**
  * NOTE: Call_er_ closes the file pointer
  */
-size_t load_binary(State* state, FILE* fp, const uint16_t addr);
-void reset_state(State* state);
-void interrupt(State* state, const uint8_t intByte);
+size_t load_binary(FILE* fp, const uint16_t addr);
+void reset_state();
+void interrupt(const uint8_t intByte);
+/**
+ * Internally clamps `bit` to 0-7
+ */
+void set_bit_on_input_port(const uint8_t port, const uint8_t bit);
+void set_input_port(const uint8_t port, const uint8_t value);
+const uint8_t read_output_port(const uint8_t port);
 
 extern const double cyclePeriodMicros;
 
