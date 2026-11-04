@@ -154,27 +154,29 @@ const uint8_t* const graphics_state() {
 }
 
 const SFX_TYPE queued_sfx() {
-    if (read_output_port(3) & 0b00000001) {
+    const uint8_t out3 = read_output_port(3);
+    const uint8_t out5 = read_output_port(5);
+    if (out3 & 0b00000001) {
         return SOUND_UFO;
-    } else if (read_output_port(3) & 0b00000010) {
+    } else if (out3 & 0b00000010) {
         return SOUND_SHOOT;
-    } else if (read_output_port(3) & 0b00000100) {
+    } else if (out3 & 0b00000100) {
         return SOUND_DEATH;
-    } else if (read_output_port(3) & 0b00001000) {
+    } else if (out3 & 0b00001000) {
         return SOUND_KILL;
-    } else if (read_output_port(3) & 0b00010000) {
+    } else if (out3 & 0b00010000) {
         return SOUND_EXTENDED_PLAY;
-    } else if (read_output_port(3) & 0b00100000) {
+    } else if (out3 & 0b00100000) {
         return SOUND_AMP_ENABLE;
-    } else if (read_output_port(5) & 0b00000001) {
+    } else if (out5 & 0b00000001) {
         return SOUND_FLEET_1;
-    } else if (read_output_port(5) & 0b00000010) {
+    } else if (out5 & 0b00000010) {
         return SOUND_FLEET_2;
-    } else if (read_output_port(5) & 0b00000100) {
+    } else if (out5 & 0b00000100) {
         return SOUND_FLEET_3;
-    } else if (read_output_port(5) & 0b00001000) {
+    } else if (out5 & 0b00001000) {
         return SOUND_FLEET_4;
-    } else if (read_output_port(5) & 0b00010000) {
+    } else if (out5 & 0b00010000) {
         return SOUND_UFO_HIT;
     }
     return SOUND_NONE;
