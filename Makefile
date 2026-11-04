@@ -15,8 +15,8 @@ CC := gcc
 CPPFLAGS := -Iinclude -MMD -MP
 TESTCPPFLAGS := -Iinclude -Iunity/src -MMD -MP
 CFLAGS	 := -Wall -std=c23 -pedantic
-LDFLAGS	 := -Llib
-LDLIBS	 := -lm
+LDFLAGS	 := -Llib -L/usr/local/lib
+LDLIBS	 := -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -latomic
 
 IGNORED = `grep -s ":IGNORE" $(RESULTS_DIR)/*.txt | wc -l`
 FAILED = `grep -s ":FAIL" $(RESULTS_DIR)/*.txt | wc -l`
@@ -36,10 +36,10 @@ test: $(TEST_EXE)
 	@echo "-----------------------\nPASSED: $(PASSED)\n-----------------------"
 
 $(EXE): $(OBJ) | $(BIN_DIR)
-	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+	$(CC) $^ $(LDFLAGS) $(LDLIBS) -DPLATFORM_DESKTOP -DPLATFORM_DESKTOP_GLFW -o $@
 
 $(TEST_EXE): $(filter-out obj/main.o, $(OBJ)) $(TEST_OBJ) | $(BIN_DIR) $(RESULTS_DIR)
-	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+	$(CC) $^ $(LDFLAGS) $(LDLIBS) -o $@
 	$@ > $(RESULTS_DIR)/test_results.txt 2>&1
 
 $(OBJ_DIR)/Test%.o: $(TEST_DIR)/Test%.c | $(OBJ_DIR)
