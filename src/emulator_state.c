@@ -1,5 +1,6 @@
 #include "emulator_state.h"
-#include <string.h>
+
+State state = {};
 
 uint8_t flags(State* state) {
     uint8_t flags = 2;

@@ -10,7 +10,7 @@ typedef struct {
     const uint8_t opbytes;
     // Pointer to the function implementing the opcode. 
     // NOTE: it is required that this function sets the program counter register appropriately when done.
-    const void (*opFn)(State* state);
+    const uint8_t (*opFn)(State* state);
 } Opcode;
 
 extern const Opcode opcodes[256];

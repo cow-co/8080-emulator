@@ -32,8 +32,13 @@ typedef struct {
     // In the 8080, the processor can address 65,535 8-bit bytes of read-write memory
     uint8_t memory[UINT16_MAX];
 
-    uint8_t deviceData[UINT8_MAX + 1];
+    uint8_t outputData[UINT8_MAX + 1];
+    uint8_t inputData[UINT8_MAX + 1];
+
+    long lastOpEndsAt;
 } State;
+
+extern State state;
 
 void write_memory(State* state, const uint16_t addr, const uint8_t data);
 
