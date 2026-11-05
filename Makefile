@@ -15,7 +15,7 @@ CC := gcc
 CPPFLAGS := -Iinclude -MMD -MP
 TESTCPPFLAGS := -Iinclude -Iunity/src -MMD -MP
 CFLAGS	 := -Wall -std=c23 -pedantic
-LDFLAGS	 := -Llib -L/usr/local/lib
+LDFLAGS	 := -Llib
 LDLIBS	 := -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -latomic
 
 IGNORED = `grep -s ":IGNORE" $(RESULTS_DIR)/*.txt | wc -l`
