@@ -2,6 +2,7 @@
 #include "machine_api.h"
 #include <raylib.h>
 #include <stddef.h>
+#include <stdio.h>
 
 
 bool generate_pixel_value(const uint8_t x, const uint8_t y, const uint8_t* const buffer) {
@@ -11,8 +12,9 @@ bool generate_pixel_value(const uint8_t x, const uint8_t y, const uint8_t* const
 }
 
 void run_simulation() {
+    reset_machine();
     load_rom();
-    
+
     InitWindow(displayParams.pixelsWidth, displayParams.pixelsHeight, "Space Invaders");
     InitAudioDevice();
 
