@@ -143,7 +143,7 @@ void run_machine() {
     if (machine.lastVBlank == 0) {
         machine.lastVBlank = clock();
     }
-    run(true);
+    run();
     const bool vblankInterrupt = (clock() - machine.lastVBlank) > (displayParams.refreshInterval * CLOCKS_PER_SEC);
     if (vblankInterrupt) {
         interrupt(0xD7);  // RST 2

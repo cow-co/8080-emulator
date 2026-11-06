@@ -10,8 +10,9 @@ bool generate_pixel_value(const uint8_t x, const uint8_t y, const uint8_t* const
     return bufferAsBits[pixelOffset];
 }
 
-
 void run_simulation() {
+    load_rom();
+    
     InitWindow(displayParams.pixelsWidth, displayParams.pixelsHeight, "Space Invaders");
     InitAudioDevice();
 

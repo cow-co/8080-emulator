@@ -8,7 +8,7 @@ const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
 const double cyclePeriodMicros = 0.5;
 const long clocksPerMicro = CLOCKS_PER_SEC / 1'000'000;
 
-void run(const bool executeInstructions) {
+void run() {
     if (state.lastOpEndsAt > clock()) {
         return;
     }
@@ -22,24 +22,23 @@ void run(const bool executeInstructions) {
     }
     const Opcode* const opcode = &opcodes[*code];
 
-    if (executeInstructions) {
-        const uint8_t cycles = opcode->opFn(&state);
-        if (state.lastOpEndsAt == 0) {
-            state.lastOpEndsAt = clock() + (cyclePeriodMicros * cycles * clocksPerMicro);
-        } else {
-            state.lastOpEndsAt += cyclePeriodMicros * cycles * clocksPerMicro;
-        }
+#ifdef __EMU8080_DEBUG__
+    printf("%04hu ", state.programCounter);
+    if (opcode->opbytes == 2) {
+        printf(opcode->assembly, code[1]);
+    } else if (opcode->opbytes == 3) {
+        printf(opcode->assembly, code[2], code[1]);
     } else {
-        printf("%04hu ", state.programCounter);
-        if (opcode->opbytes == 2) {
-            printf(opcode->assembly, code[1]);
-        } else if (opcode->opbytes == 3) {
-            printf(opcode->assembly, code[2], code[1]);
-        } else {
-            printf("%s", opcode->assembly);
-        }
-        printf("\n");
-        state.programCounter += opcode->opbytes;
+        printf("%s", opcode->assembly);
+    }
+    printf("\n");
+#endif
+
+    const uint8_t cycles = opcode->opFn(&state);
+    if (state.lastOpEndsAt == 0) {
+        state.lastOpEndsAt = clock() + (cyclePeriodMicros * cycles * clocksPerMicro);
+    } else {
+        state.lastOpEndsAt += cyclePeriodMicros * cycles * clocksPerMicro;
     }
 }
 
