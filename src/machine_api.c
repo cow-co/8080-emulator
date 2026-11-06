@@ -11,20 +11,20 @@ const DisplayParams displayParams = {
     .refreshInterval = 1./60.,
 };
 
-const char* const sfx_files[12] = {
-    "",
+const char* const sfxFiles[9] = {
     "./data/0.wav",
     "./data/1.wav",
     "./data/2.wav",
     "./data/3.wav",
-    "",
-    "",
     "./data/4.wav",
     "./data/5.wav",
     "./data/6.wav",
     "./data/7.wav",
     "./data/3.wav",
 };
+bool sfxStates[9] = {0};
+bool ampEnable = true;
+bool extendPlay = false;
 
 void load_rom() {
     FILE* h_file = fopen("./data/invaders.h", "rb");
@@ -140,7 +140,9 @@ void key_release(Input inputType) {
 }
 
 void run_machine() {
-    machine.lastVBlank = clock();
+    if (machine.lastVBlank == 0) {
+        machine.lastVBlank = clock();
+    }
     run(true);
     const bool vblankInterrupt = (clock() - machine.lastVBlank) > (displayParams.refreshInterval * CLOCKS_PER_SEC);
     if (vblankInterrupt) {
@@ -153,31 +155,18 @@ const uint8_t* const graphics_state() {
     return read_memory(0x2400);
 }
 
-const SFX_TYPE queued_sfx() {
+const void queued_sfx() {
     const uint8_t out3 = read_output_port(3);
     const uint8_t out5 = read_output_port(5);
-    if (out3 & 0b00000001) {
-        return SOUND_UFO;
-    } else if (out3 & 0b00000010) {
-        return SOUND_SHOOT;
-    } else if (out3 & 0b00000100) {
-        return SOUND_DEATH;
-    } else if (out3 & 0b00001000) {
-        return SOUND_KILL;
-    } else if (out3 & 0b00010000) {
-        return SOUND_EXTENDED_PLAY;
-    } else if (out3 & 0b00100000) {
-        return SOUND_AMP_ENABLE;
-    } else if (out5 & 0b00000001) {
-        return SOUND_FLEET_1;
-    } else if (out5 & 0b00000010) {
-        return SOUND_FLEET_2;
-    } else if (out5 & 0b00000100) {
-        return SOUND_FLEET_3;
-    } else if (out5 & 0b00001000) {
-        return SOUND_FLEET_4;
-    } else if (out5 & 0b00010000) {
-        return SOUND_UFO_HIT;
-    }
-    return SOUND_NONE;
+    sfxStates[0] = (out3 & 0b00000001);
+    sfxStates[1] = (out3 & 0b00000010);
+    sfxStates[2] = (out3 & 0b00000100);
+    sfxStates[3] = (out3 & 0b00001000);
+    extendPlay   = (out3 & 0b00010000);
+    ampEnable    = (out3 & 0b00100000);
+    sfxStates[4] = (out5 & 0b00000001);
+    sfxStates[5] = (out5 & 0b00000010);
+    sfxStates[6] = (out5 & 0b00000100);
+    sfxStates[7] = (out5 & 0b00001000);
+    sfxStates[8] = (out5 & 0b00010000);
 }

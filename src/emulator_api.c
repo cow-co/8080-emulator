@@ -12,9 +12,12 @@ void run(const bool executeInstructions) {
     if (state.lastOpEndsAt > clock()) {
         return;
     }
-    const unsigned char* const code = &state.memory[state.programCounter];
+    const uint8_t* const code = &state.memory[state.programCounter];
     if (*code >= countOpcodes) {
         printf("ERROR: Could not find opcode %04hhu!\n", *code);
+        return;
+    } else if (code == nullptr) {
+        printf("ERROR: Could not find opcode!\n");
         return;
     }
     const Opcode* const opcode = &opcodes[*code];
@@ -120,7 +123,9 @@ void unset_input_port(const uint8_t port) {
 
 
 const uint8_t read_output_port(const uint8_t port) {
-    return state.outputData[port];
+    const uint8_t value = state.outputData[port];
+    state.outputData[port] = 0;
+    return value;
 }
 
 
