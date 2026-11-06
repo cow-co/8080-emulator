@@ -17,10 +17,10 @@ void run_simulation() {
     InitAudioDevice();
     SetTargetFPS(60);
 
-    Music musics[16] = {};    // Let's just allow a max of 16 audio files
+    Sound sfxes[16] = {};    // Let's just allow a max of 16 audio files
+    
     for (size_t i = 0; i < sizeof(sfx_files) / sizeof(sfx_files[0]); ++i) {
-        musics[i] = LoadMusicStream(sfx_files[i]);
-        musics[i].looping = false;
+        sfxes[i] = LoadSound(sfx_files[i]);
     }
     SFX_TYPE currentMusic = SOUND_NONE;
 
@@ -60,7 +60,7 @@ void run_simulation() {
             && sfx != SOUND_EXTENDED_PLAY
             && sfx != SOUND_AMP_ENABLE
         ) {
-            PlayMusicStream(musics[sfx]);
+            PlaySound(sfxes[sfx]);
         }
 
         // TODO Add the P2 keys and the Coin keys
@@ -76,7 +76,7 @@ void run_simulation() {
         }
 
         // Set any pressed keys
-        if (IsKeyDown(KEY_RIGHT)) {
+        if (IsKeyReleased(KEY_RIGHT)) {
             key_press(P1_RIGHT);
         }
         if (IsKeyDown(KEY_LEFT)) {
@@ -90,7 +90,8 @@ void run_simulation() {
     UnloadTexture(displayTexture);
     UnloadImage(displayImage);
     for (size_t i = 0; i < sizeof(sfx_files) / sizeof(sfx_files[0]); ++i) {
-        UnloadMusicStream(musics[i]);
+        UnloadSound(sfxes[i]);
     }
+    CloseAudioDevice();
     CloseWindow();
 }
