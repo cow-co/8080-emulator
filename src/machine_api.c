@@ -7,23 +7,23 @@
 const DisplayParams displayParams = {
     .pixelsWidth = 224,
     .pixelsHeight = 256,
-    .bitsPerPixel = 1,
+    .pixelsPerByte = 8,
     .refreshInterval = 1./60.,
 };
 
-const char* const sfx_files[] = {
+const char* const sfx_files[12] = {
     "",
     "./data/0.wav",
     "./data/1.wav",
     "./data/2.wav",
     "./data/3.wav",
+    "",
+    "",
     "./data/4.wav",
     "./data/5.wav",
     "./data/6.wav",
     "./data/7.wav",
-    "./data/8.wav",
-    "./data/9.wav",
-    "./data/10.wav",
+    "./data/3.wav",
 };
 
 void load_rom() {

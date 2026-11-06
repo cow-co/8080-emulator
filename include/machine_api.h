@@ -30,12 +30,12 @@ typedef enum {
     SOUND_UFO_HIT,
 } SFX_TYPE;
 
-extern const char* const sfx_files[];
+extern const char* const sfx_files[12];
 
 typedef struct {
     unsigned pixelsWidth;
     unsigned pixelsHeight;
-    unsigned bitsPerPixel;
+    unsigned pixelsPerByte;
     double refreshInterval;
 } DisplayParams;
 
