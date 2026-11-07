@@ -1379,7 +1379,6 @@ uint8_t cpi(State* state) {
 /////////////////////////////////////////// CALL/RET ///////////////////////////////////////////
 
 
-#define __CPUDIAG__
 uint8_t call(State* state) {
     uint16_t callAddr = form_2_byte_from_1_bytes(
         state->memory[state->programCounter + 2],

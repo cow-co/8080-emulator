@@ -4,8 +4,6 @@
 #include "emulator_state.h"
 #include <time.h>
 
-#define __CPUDIAG__
-
 const DisplayParams displayParams = {
     .pixelsWidth = 224,
     .pixelsHeight = 256,
