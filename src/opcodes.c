@@ -200,7 +200,7 @@ uint8_t mov_da(State* state) {
 }
 
 uint8_t mov_eb(State* state) {
-    mov(state, &state->E, &state->C);
+    mov(state, &state->E, &state->B);
     return 5;
 }
 uint8_t mov_ec(State* state) {
@@ -230,7 +230,7 @@ uint8_t mov_ea(State* state) {
 }
 
 uint8_t mov_hb(State* state) {
-    mov(state, &state->H, &state->C);
+    mov(state, &state->H, &state->B);
     return 5;
 }
 uint8_t mov_hc(State* state) {
@@ -260,7 +260,7 @@ uint8_t mov_ha(State* state) {
 }
 
 uint8_t mov_lb(State* state) {
-    mov(state, &state->L, &state->C);
+    mov(state, &state->L, &state->B);
     return 5;
 }
 uint8_t mov_lc(State* state) {
@@ -291,7 +291,7 @@ uint8_t mov_la(State* state) {
 
 uint8_t mov_mb(State* state) {
     const uint16_t addr = form_2_byte_from_1_bytes(state->H, state->L);
-    mov(state, &state->memory[addr], &state->C);
+    mov(state, &state->memory[addr], &state->B);
     return 7;
 }
 uint8_t mov_mc(State* state) {
@@ -326,7 +326,7 @@ uint8_t mov_ma(State* state) {
 }
 
 uint8_t mov_ab(State* state) {
-    mov(state, &state->A, &state->C);
+    mov(state, &state->A, &state->B);
     return 5;
 }
 uint8_t mov_ac(State* state) {
@@ -741,6 +741,7 @@ uint8_t push_psw(State* state) {
     return push(state, state->A, flags(state));
 }
 
+// FIXME PUSH AND POP PSW NOT WORKING
 uint8_t pop(State* state, uint8_t* const highByte, uint8_t* const lowByte) {
     *lowByte = state->memory[state->stackPointer];
     *highByte = state->memory[state->stackPointer + 1];
@@ -761,8 +762,8 @@ uint8_t pop_h(State* state) {
 }
 
 uint8_t pop_psw(State* state) {
-    state->A = state->memory[state->stackPointer];
-    const uint8_t flags = state->memory[state->stackPointer + 1];
+    state->A = state->memory[state->stackPointer + 1];
+    const uint8_t flags = state->memory[state->stackPointer];
     state->carry = flags & (uint8_t)1;
     state->parity= flags & (uint8_t)4;
     state->auxCarry = flags & (uint8_t)16;
@@ -840,13 +841,12 @@ uint8_t daa(State* state) {
         uint16_t res = lowNibble + 0b0110;
         state->auxCarry = (res & 0b10000);
         res = state->A + 6;
-        state->carry = (res & 0b100000000);
-        state->A += 6;
+        state->A += 6;  // 22
     }
     
     const uint8_t highNibble = state->A & 0b11110000;
     const bool highNibbleGreaterThanNine = (highNibble >> 4) > 9;
-    if (state->carry || highNibbleGreaterThanNine) {
+    if (state->carry || highNibbleGreaterThanNine) {    // true
         // Checks if the addition will generate a carry out of bit 7
         uint16_t res = (highNibble + 0b01100000);
         state->carry = (res & 0b100000000);
@@ -1126,6 +1126,7 @@ uint8_t sbi(State* state) {
 void ana(State* state, const uint8_t value) {
     state->A &= value;
     state->carry = false;
+    state->auxCarry = false;
     assign_parity(state, state->A, 8);
     state->zero = !state->A;
     state->sign = state->A & 0b10000000;
@@ -1227,6 +1228,7 @@ uint8_t xra_a(State* state) {
 void ora(State* state, const uint8_t value) {
     state->A |= value;
     state->carry = false;
+    state->auxCarry = false;
     assign_parity(state, state->A, 8);
     state->zero = !state->A;
     state->sign = state->A & 0b10000000;
@@ -1278,6 +1280,7 @@ uint8_t ani(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     state->A &= data;
     state->carry = false;
+    state->auxCarry = false;
     assign_parity(state, state->A, 8);
     state->zero = !state->A;
     state->sign = state->A & 0b10000000;
@@ -1289,6 +1292,7 @@ uint8_t xri(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     state->A ^= data;
     state->carry = false;
+    state->auxCarry = false;
     assign_parity(state, state->A, 8);
     state->zero = !state->A;
     state->sign = state->A & 0b10000000;
@@ -1300,6 +1304,7 @@ uint8_t ori(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     state->A |= data;
     state->carry = false;
+    state->auxCarry = false;
     assign_parity(state, state->A, 8);
     state->zero = !state->A;
     state->sign = state->A & 0b10000000;
@@ -1310,17 +1315,14 @@ uint8_t ori(State* state) {
 void cmp(State* state, const uint8_t value) {
     // Slightly different logic than sub (don't set accumulator) so let's keep this separate
     // (for now at least)
-    const uint8_t twosComp = ~value + 1;
-    
+    const uint8_t twosComp = ~value + 1;    
     uint8_t lsn = state->A & 0x0F;
     uint8_t valLSN = twosComp & 0x0F;
     state->auxCarry = lsn + valLSN > 0xF;
 
-    uint16_t resWithCarry = state->A + twosComp;
-    uint8_t res = state->A + twosComp;
-    state->carry = !(resWithCarry & 0b100000000);
-
-    state->zero = res== 0;
+    uint8_t res = state->A - value;
+    state->carry = state->A < value;
+    state->zero = (res == 0);
     assign_parity(state, res, 8);
     state->sign = res & 0b10000000;
     ++state->programCounter;
@@ -1370,19 +1372,43 @@ uint8_t cmp_a(State* state) {
 uint8_t cpi(State* state) {
     const uint8_t data = state->memory[state->programCounter + 1];
     cmp(state, data);
+    ++state->programCounter;    // cmp() already increments this by one
     return 7;
 }
 
 /////////////////////////////////////////// CALL/RET ///////////////////////////////////////////
 
+
+#define __CPUDIAG__
 uint8_t call(State* state) {
-    write_memory(state, state->stackPointer - 1, (state->programCounter >> 8));
-    write_memory(state, state->stackPointer - 2, (state->programCounter & 0xFF));
-    state->stackPointer -= 2;
-    state->programCounter = form_2_byte_from_1_bytes(
+    uint16_t callAddr = form_2_byte_from_1_bytes(
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
+#ifdef __CPUDIAG__
+    if (callAddr == 5) {
+        if (state->C == 9) {
+            uint16_t offset = form_2_byte_from_1_bytes(
+                state->D, state->E
+            );
+            char* str = &state->memory[offset + 3];
+            while (*str != '$') {
+                printf("%c", *str++);
+            }
+            printf("\n");
+            exit(1);
+        } else if (state->C == 2) {
+            printf("Print char\n");
+        }
+    } else if (callAddr == 0) {
+        exit(0);
+    }
+#endif
+    uint16_t ret = state->programCounter + 3;
+    write_memory(state, state->stackPointer - 1, (ret >> 8));
+    write_memory(state, state->stackPointer - 2, (ret & 0xFF));
+    state->stackPointer -= 2;
+    state->programCounter = callAddr;
     return 17;
 }
 
@@ -1459,8 +1485,10 @@ uint8_t cpo(State* state) {
 }
 
 uint8_t ret(State* state) {
-    state->programCounter &= (state->memory[state->stackPointer + 1] << 8);
-    state->programCounter &= state->memory[state->stackPointer + 0];
+    // NOTE We rely on zero-extension of unsigned values here.
+    state->programCounter = (state->memory[state->stackPointer + 1] << 8);  // This sets the high byte (and sets low byte to 0, via 0-extension)
+    state->programCounter |= state->memory[state->stackPointer + 0];        // This sets the low byte
+    state->stackPointer += 2;
     return 10;
 }
 
@@ -1469,7 +1497,7 @@ uint8_t rc(State* state) {
         ret(state);
         return 11;
     } else {
-        state->programCounter += 3;
+        ++state->programCounter;
         return 5;
     }
 }
@@ -1479,7 +1507,7 @@ uint8_t rnc(State* state) {
         ret(state);
         return 11;
     } else {
-        state->programCounter += 3;
+        ++state->programCounter;
         return 5;
     }
 }
@@ -1489,7 +1517,7 @@ uint8_t rz(State* state) {
         ret(state);
         return 11;
     } else {
-        state->programCounter += 3;
+        ++state->programCounter;
         return 5;
     }
 }
@@ -1499,7 +1527,7 @@ uint8_t rnz(State* state) {
         ret(state);
         return 11;
     } else {
-        state->programCounter += 3;
+        ++state->programCounter;
         return 5;
     }
 }
@@ -1509,7 +1537,7 @@ uint8_t rm(State* state) {
         ret(state);
         return 11;
     } else {
-        state->programCounter += 3;
+        ++state->programCounter;
         return 5;
     }
 }
@@ -1519,7 +1547,7 @@ uint8_t rp(State* state) {
         ret(state);
         return 11;
     } else {
-        state->programCounter += 3;
+        ++state->programCounter;
         return 5;
     }
 }
@@ -1529,7 +1557,7 @@ uint8_t rpe(State* state) {
         ret(state);
         return 11;
     } else {
-        state->programCounter += 3;
+        ++state->programCounter;
         return 5;
     }
 }
@@ -1539,7 +1567,7 @@ uint8_t rpo(State* state) {
         ret(state);
         return 11;
     } else {
-        state->programCounter += 3;
+        ++state->programCounter;
         return 5;
     }
 }

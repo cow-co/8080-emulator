@@ -41,6 +41,7 @@ typedef struct {
 extern State state;
 
 void write_memory(State* state, const uint16_t addr, const uint8_t data);
+void write_memory_unsafe(State* state, const uint16_t addr, const uint8_t data);
 
 // Flags byte has bits set like so:
 // 0: Carry

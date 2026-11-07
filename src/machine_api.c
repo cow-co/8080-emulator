@@ -1,8 +1,10 @@
 #include "machine_api.h"
 #include "machine_state.h"
 #include "emulator_api.h"
+#include "emulator_state.h"
 #include <time.h>
 
+#define __CPUDIAG__
 
 const DisplayParams displayParams = {
     .pixelsWidth = 224,
@@ -27,6 +29,7 @@ bool ampEnable = true;
 bool extendPlay = false;
 
 void load_rom() {
+#ifndef __CPUDIAG__
     FILE* file = fopen("./data/invaders", "rb");
     if (file == nullptr) {
         printf("ERROR: Could not open space invaders ROM file!\n");
@@ -34,6 +37,20 @@ void load_rom() {
     }
     
     load_binary(file, 0x0000);
+#endif
+#ifdef __CPUDIAG__
+    FILE* file = fopen("./data/cpudiag.bin", "rb");
+    if (file == nullptr) {
+        printf("ERROR: Could not open CPU Diag ROM file!\n");
+        return;
+    }
+    
+    load_binary(file, 0x100);
+    state.memory[0] = 0xc3;
+    state.memory[1] = 0x00;
+    state.memory[2] = 0x01;
+    state.memory[368] = 0x07;
+#endif
 }
 
 void reset_machine() {

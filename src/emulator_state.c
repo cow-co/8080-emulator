@@ -14,9 +14,13 @@ uint8_t flags(State* state) {
 
 void write_memory(State* state, const uint16_t addr, const uint8_t data) {
     // The lowest 2K of memory is genuine ROM
-    if (addr <= 2047) {
-        printf("Could not write to memory location 0x%hx since it is in ROM!\n", addr);
-    } else {
-        state->memory[addr] = data;
-    }
+    // if (addr <= 2047) {
+    //     printf("Could not write to memory location 0x%hx since it is in ROM!\n", addr);
+    // } else {
+        write_memory_unsafe(state, addr, data);
+    // }
+}
+
+void write_memory_unsafe(State* state, const uint16_t addr, const uint8_t data) {
+    state->memory[addr] = data;
 }
