@@ -17,10 +17,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+    - name: Prep
+      run: sudo apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev libglfw3 libglfw3-dev
     - name: Clean
       run: make clean
     - name: Test
       run: make test
+    - name: CPU Diagnostic
+      run: make diag
     - name: Build
       run: make package
     - name: Upload

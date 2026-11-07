@@ -340,6 +340,55 @@ void test_arithmetic() {
     TEST_ASSERT(!state.auxCarry);
     TEST_ASSERT(state.sign);
     TEST_ASSERT(!state.parity);
+
+    // CMP
+    reset_state();
+    state.A = 0x0A;
+    state.B = 0x05;
+    state.carry = true;
+    cmp_b(&state);
+    TEST_ASSERT_EQUAL_UINT8(0x0A, state.A);
+    TEST_ASSERT(!state.carry);
+    TEST_ASSERT(!state.zero);
+    TEST_ASSERT(state.auxCarry);
+    TEST_ASSERT(!state.sign);
+    TEST_ASSERT(state.parity);
+
+    reset_state();
+    state.A = 0x02;
+    state.B = 0x05;
+    state.carry = true;
+    cmp_b(&state);
+    TEST_ASSERT_EQUAL_UINT8(0x02, state.A);
+    TEST_ASSERT(state.carry);
+    TEST_ASSERT(!state.zero);
+    TEST_ASSERT(!state.auxCarry);
+    TEST_ASSERT(state.sign);
+    TEST_ASSERT(!state.parity);
+
+    reset_state();
+    state.A = -0x1B;
+    state.B = 0x05;
+    state.carry = true;
+    cmp_b(&state);
+    TEST_ASSERT_EQUAL_UINT8(-0x1B, state.A);
+    TEST_ASSERT(!state.carry);
+    TEST_ASSERT(!state.zero);
+    TEST_ASSERT(state.auxCarry);
+    TEST_ASSERT(state.sign);
+    TEST_ASSERT(!state.parity);
+
+    reset_state();
+    state.A = 0xF5;
+    state.B = 0x00;
+    state.carry = false;
+    cmp_b(&state);
+    TEST_ASSERT_EQUAL_UINT8(0xF5, state.A);
+    TEST_ASSERT(!state.carry);
+    TEST_ASSERT(!state.zero);
+    TEST_ASSERT(!state.auxCarry);
+    TEST_ASSERT(state.sign);
+    TEST_ASSERT(state.parity);
 }
 
 void test_logic() {

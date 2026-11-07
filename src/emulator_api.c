@@ -8,35 +8,36 @@ const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
 const double cyclePeriodMicros = 0.5;
 const long clocksPerMicro = CLOCKS_PER_SEC / 1'000'000;
 
-void run(const bool executeInstructions) {
+void run() {
     if (state.lastOpEndsAt > clock()) {
         return;
     }
-    const unsigned char* const code = &state.memory[state.programCounter];
+    const uint8_t* const code = &state.memory[state.programCounter];
     if (*code >= countOpcodes) {
         printf("ERROR: Could not find opcode %04hhu!\n", *code);
         return;
+    } else if (code == nullptr) {
+        printf("ERROR: Could not find opcode!\n");
+        return;
     }
     const Opcode* const opcode = &opcodes[*code];
-
-    if (executeInstructions) {
-        const uint8_t cycles = opcode->opFn(&state);
-        if (state.lastOpEndsAt == 0) {
-            state.lastOpEndsAt = clock() + (cyclePeriodMicros * cycles * clocksPerMicro);
-        } else {
-            state.lastOpEndsAt += cyclePeriodMicros * cycles * clocksPerMicro;
-        }
+#ifdef EMU8080_DEBUG
+    printf("%04hu ", state.programCounter);
+    if (opcode->opbytes == 2) {
+        printf(opcode->assembly, code[1]);
+    } else if (opcode->opbytes == 3) {
+        printf(opcode->assembly, code[2], code[1]);
     } else {
-        printf("%04hu ", state.programCounter);
-        if (opcode->opbytes == 2) {
-            printf(opcode->assembly, code[1]);
-        } else if (opcode->opbytes == 3) {
-            printf(opcode->assembly, code[2], code[1]);
-        } else {
-            printf("%s", opcode->assembly);
-        }
-        printf("\n");
-        state.programCounter += opcode->opbytes;
+        printf("%s", opcode->assembly);
+    }
+    printf("\n");
+#endif
+
+    const uint8_t cycles = opcode->opFn(&state);
+    if (state.lastOpEndsAt == 0) {
+        state.lastOpEndsAt = clock() + (cyclePeriodMicros * cycles * clocksPerMicro);
+    } else {
+        state.lastOpEndsAt += cyclePeriodMicros * cycles * clocksPerMicro;
     }
 }
 
@@ -120,7 +121,9 @@ void unset_input_port(const uint8_t port) {
 
 
 const uint8_t read_output_port(const uint8_t port) {
-    return state.outputData[port];
+    const uint8_t value = state.outputData[port];
+    state.outputData[port] = 0;
+    return value;
 }
 
 

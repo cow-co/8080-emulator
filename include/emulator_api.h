@@ -7,7 +7,7 @@
 /**
  * Runs one iteration (one instruction) of the emulator
  */
-void run(const bool executeInstructions);
+void run();
 
 /**
  * NOTE: Call_er_ closes the file pointer

@@ -1,7 +1,6 @@
-
+diag_obj/
 obj/
 bin/
-lib/
 data/
 results/
 release/
