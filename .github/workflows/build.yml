@@ -21,6 +21,8 @@ jobs:
       run: make clean
     - name: Test
       run: make test
+    - name: CPU Diagnostic
+      run: make diag
     - name: Build
       run: make package
     - name: Upload

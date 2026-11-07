@@ -9,6 +9,10 @@
 
 `make test`
 
+### Run CPU Diagnostic
+
+`make diag`
+
 ### Build
 
 `make build`

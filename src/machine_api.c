@@ -27,7 +27,7 @@ bool ampEnable = true;
 bool extendPlay = false;
 
 void load_rom() {
-#ifndef __CPUDIAG__
+#ifndef CPUDIAG
     FILE* file = fopen("./data/invaders", "rb");
     if (file == nullptr) {
         printf("ERROR: Could not open space invaders ROM file!\n");
@@ -36,7 +36,7 @@ void load_rom() {
     
     load_binary(file, 0x0000);
 #endif
-#ifdef __CPUDIAG__
+#ifdef CPUDIAG
     FILE* file = fopen("./data/cpudiag.bin", "rb");
     if (file == nullptr) {
         printf("ERROR: Could not open CPU Diag ROM file!\n");

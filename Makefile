@@ -1,14 +1,17 @@
 SRC_DIR := src
 TEST_DIR := tests
 OBJ_DIR := obj
+DIAG_OBJ_DIR := diag_obj
 BIN_DIR := bin
 RESULTS_DIR := results
 
-EXE := $(BIN_DIR)/8080-emulator
+EXE := $(BIN_DIR)/space-invaders
+DIAG_EXE := $(BIN_DIR)/8080-emulator-diagnostic
 TEST_EXE := $(BIN_DIR)/test
 SRC := $(wildcard $(SRC_DIR)/*.c)
 TEST_SRC := $(wildcard $(TEST_DIR)/*.c)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+DIAG_OBJ := $(SRC:$(SRC_DIR)/%.c=$(DIAG_OBJ_DIR)/%.o)
 TEST_OBJ := $(TEST_SRC:$(TEST_DIR)/%.c=$(OBJ_DIR)/%.o) $(OBJ_DIR)/unity.o
 
 CC := gcc
@@ -22,11 +25,11 @@ IGNORED = `grep -s ":IGNORE" $(RESULTS_DIR)/*.txt | wc -l`
 FAILED = `grep -s ":FAIL" $(RESULTS_DIR)/*.txt | wc -l`
 PASSED = `grep -s ":PASS" $(RESULTS_DIR)/*.txt | wc -l`
 
-.PHONY: package all clean test
+.PHONY: package all clean test diag
 
 package: $(EXE) | release
 	mv $(EXE) release/
-	zip -r 8080-emulator.zip release/
+	zip -r space-invaders.zip release/
 
 build: $(EXE)
 
@@ -35,8 +38,16 @@ test: $(TEST_EXE)
 	@echo "-----------------------\nFAILED: $(FAILED)\n-----------------------"
 	@echo "-----------------------\nPASSED: $(PASSED)\n-----------------------"
 
+
+diag: $(DIAG_EXE)
+
+
 $(EXE): $(OBJ) | $(BIN_DIR)
 	$(CC) $^ $(LDFLAGS) $(LDLIBS) -DPLATFORM_DESKTOP -DPLATFORM_DESKTOP_GLFW -o $@
+
+$(DIAG_EXE): $(DIAG_OBJ) | $(BIN_DIR)
+	$(CC) $^ $(LDFLAGS) $(LDLIBS) -DPLATFORM_DESKTOP -DPLATFORM_DESKTOP_GLFW -DEMU8080_DEBUG -DCPU_DIAG -o $@
+	$@
 
 $(TEST_EXE): $(filter-out obj/main.o, $(OBJ)) $(TEST_OBJ) | $(BIN_DIR) $(RESULTS_DIR)
 	$(CC) $^ $(LDFLAGS) $(LDLIBS) -o $@
@@ -51,10 +62,13 @@ $(OBJ_DIR)/unity.o: unity/src/unity.c | $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-$(BIN_DIR) $(OBJ_DIR) $(RESULTS_DIR) release:
+$(DIAG_OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(DIAG_OBJ_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -DEMU8080_DEBUG -DCPUDIAG -o $@
+
+$(BIN_DIR) $(DIAG_OBJ_DIR) $(OBJ_DIR) $(RESULTS_DIR) release:
 	mkdir -p $@
 
 clean:
-	@$(RM) -rv $(BIN_DIR) $(OBJ_DIR) $(RESULTS_DIR) release
+	@$(RM) -rv $(BIN_DIR) $(DIAG_OBJ_DIR) $(OBJ_DIR) $(RESULTS_DIR) release
 
 -include $(OBJ:.o=.d)

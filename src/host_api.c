@@ -15,6 +15,15 @@ void run_simulation() {
     reset_machine();
     load_rom();
 
+#ifdef CPUDIAG
+
+    while (true) {
+        run_machine();
+    }
+
+#endif
+
+#ifndef CPUDIAG
     InitWindow(displayParams.pixelsWidth, displayParams.pixelsHeight, "Space Invaders");
     InitAudioDevice();
 
@@ -130,4 +139,5 @@ void run_simulation() {
     }
     CloseAudioDevice();
     CloseWindow();
+#endif
 }

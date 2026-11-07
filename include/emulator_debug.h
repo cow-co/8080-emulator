@@ -1,1 +1,0 @@
-#define __CPU_DIAG__

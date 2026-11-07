@@ -641,6 +641,13 @@ uint8_t jmp(State* state) {
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
+
+#ifdef CPUDIAG
+    if (state->programCounter == 0) {
+        exit(0);
+    }
+#endif
+
     return 10;
 }
 
@@ -1384,7 +1391,7 @@ uint8_t call(State* state) {
         state->memory[state->programCounter + 2],
         state->memory[state->programCounter + 1]
     );
-#ifdef __CPUDIAG__
+#ifdef CPUDIAG
     if (callAddr == 5) {
         if (state->C == 9) {
             uint16_t offset = form_2_byte_from_1_bytes(
@@ -1395,7 +1402,8 @@ uint8_t call(State* state) {
                 printf("%c", *str++);
             }
             printf("\n");
-            exit(1);
+            state->programCounter += 3;
+            return 17;
         } else if (state->C == 2) {
             printf("Print char\n");
         }
