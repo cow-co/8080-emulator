@@ -60,7 +60,7 @@ $(OBJ_DIR)/unity.o: unity/src/unity.c | $(OBJ_DIR)
 	$(CC) $(TESTCPPFLAGS) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -DEMU8080_DEBUG -o $@
 
 $(DIAG_OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(DIAG_OBJ_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -DEMU8080_DEBUG -DCPUDIAG -o $@

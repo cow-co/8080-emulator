@@ -58,6 +58,8 @@ void reset_machine() {
     set_input_port(1, 0b00001000);
 }
 
+// FIXME Need to handle the shift register somehow...this means machine-specific IN/OUT opcode handling
+
 void key_press(Input inputType) {
     switch (inputType)
     {

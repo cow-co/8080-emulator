@@ -22,7 +22,7 @@ void run() {
     }
     const Opcode* const opcode = &opcodes[*code];
 #ifdef EMU8080_DEBUG
-    printf("%04hu ", state.programCounter);
+    printf("0x%04X ", state.programCounter);
     if (opcode->opbytes == 2) {
         printf(opcode->assembly, code[1]);
     } else if (opcode->opbytes == 3) {
