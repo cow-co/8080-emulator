@@ -6,9 +6,11 @@
 
 
 bool generate_pixel_value(const uint8_t x, const uint8_t y, const uint8_t* const buffer) {
-    const uint8_t pixelOffset = x * displayParams.pixelsHeight + y;    // eg. 256
-    const bool* const bufferAsBits = (bool*)buffer;
-    return bufferAsBits[pixelOffset];
+    const uint8_t pixelOffset = x * displayParams.pixelsHeight + y;
+    const uint8_t byteOffset = pixelOffset / displayParams.pixelsPerByte;
+    const uint8_t remainder = pixelOffset % displayParams.pixelsPerByte;
+    const uint8_t byteValue = buffer[byteOffset];
+    return ((byteValue >> remainder) & 0x1);
 }
 
 void run_simulation() {
@@ -43,11 +45,14 @@ void run_simulation() {
         run_machine();
         
         // Render
-        const uint8_t* const framebuffer = graphics_state();
-        for (size_t x = 0; x < displayParams.pixelsWidth; ++x) {
-            for (size_t y = 0; y < displayParams.pixelsHeight; ++y) {
-                const bool pixelValue = generate_pixel_value(x, y, framebuffer);
-                ImageDrawPixel(&displayImage, x, y, pixelValue ? pixColourOn : pixColourOff);
+        const bool* const framebuffer = graphics_state();
+        for (size_t y = 0; y < displayParams.pixelsHeight; ++y) {
+            for (size_t x = 0; x < displayParams.pixelsWidth; ++x) {
+                if (framebuffer[y * displayParams.pixelsWidth + x]) {
+                    ImageDrawPixel(&displayImage, x, displayParams.pixelsHeight-y, pixColourOn);
+                } else {
+                    ImageDrawPixel(&displayImage, x, displayParams.pixelsHeight-y, pixColourOff);
+                }
             }
         }
         UpdateTexture(displayTexture, displayImage.data);

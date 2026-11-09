@@ -15,11 +15,17 @@ uint8_t flags(State* state) {
 void write_memory(State* state, const uint16_t addr, const uint8_t data) {
 #ifndef CPUDIAG
     // The lowest 2K of memory is genuine ROM
-    if (addr <= 2047) {
-        printf("Could not write to memory location 0x%hx since it is in ROM!\n", addr);
+    if (addr < 0x2000) {
+        return;
+    }
+    // Above 4K is the RAM mirror
+    if (addr >= 0x4000) {
         return;
     }
 #endif
+    if (addr >= 0x2400) {
+        printf("Writing %hhu to video mem at %hu\n", data, addr);
+    }
     write_memory_unsafe(state, addr, data);
 }
 

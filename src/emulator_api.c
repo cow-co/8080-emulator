@@ -5,22 +5,34 @@
 #include <time.h>
 
 const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
-const double cyclePeriodMicros = 0.5;
-const long clocksPerMicro = CLOCKS_PER_SEC / 1'000'000;
+bool enableTrace = false;
 
-void run() {
-    if (state.lastOpEndsAt > clock()) {
-        return;
+const uint8_t run() {
+    if (state.programCounter == 0x081F) {
+        printf("Gameloop\n");
     }
+
     const uint8_t* const code = &state.memory[state.programCounter];
     if (*code >= countOpcodes) {
         printf("ERROR: Could not find opcode %04hhu!\n", *code);
-        return;
+        return 0;
     } else if (code == nullptr) {
         printf("ERROR: Could not find opcode!\n");
-        return;
+        return 0;
     }
     const Opcode* const opcode = &opcodes[*code];
+
+    if (enableTrace) {
+        printf("0x%04X ", state.programCounter);
+        if (opcode->opbytes == 2) {
+            printf(opcode->assembly, code[1]);
+        } else if (opcode->opbytes == 3) {
+            printf(opcode->assembly, code[2], code[1]);
+        } else {
+            printf("%s", opcode->assembly);
+        }
+        printf("\n");
+    }
 #ifdef EMU8080_DEBUG
     printf("0x%04X ", state.programCounter);
     if (opcode->opbytes == 2) {
@@ -34,11 +46,7 @@ void run() {
 #endif
 
     const uint8_t cycles = opcode->opFn(&state);
-    if (state.lastOpEndsAt == 0) {
-        state.lastOpEndsAt = clock() + (cyclePeriodMicros * cycles * clocksPerMicro);
-    } else {
-        state.lastOpEndsAt += cyclePeriodMicros * cycles * clocksPerMicro;
-    }
+    return cycles;
 }
 
 size_t load_binary(FILE* fp, const uint16_t addr) {
@@ -72,7 +80,6 @@ void reset_state() {
 
     state.intEnabled = false;
     state.halted = false;
-    state.lastOpEndsAt = 0;   // The 8080 runs at 2MHz
 
     memset(&state.memory, 0, sizeof(state.memory) / sizeof(uint8_t));
     memset(&state.inputData, 0, sizeof(state.inputData) / sizeof(uint8_t));
@@ -82,11 +89,18 @@ void reset_state() {
 
 void interrupt(const uint8_t intByte) {
     if (state.intEnabled) {
+        state.intEnabled = false;
+
         if (intByte >= countOpcodes) {
             printf("ERROR: Could not find opcode %04hhu!\n", intByte);
             return;
         }
         const Opcode* const opcode = &opcodes[intByte];
+#ifdef EMU8080_DEBUG
+        printf("0x%04X ", state.programCounter);
+        printf("%s", opcode->assembly);
+        printf("\n");
+#endif
         opcode->opFn(&state);
     }
 }
@@ -122,11 +136,10 @@ void unset_input_port(const uint8_t port) {
 
 const uint8_t read_output_port(const uint8_t port) {
     const uint8_t value = state.outputData[port];
-    state.outputData[port] = 0;
     return value;
 }
 
 
-const uint8_t* const read_memory(const uint16_t fromAddr) {
+const void* const read_memory(const uint16_t fromAddr) {
     return &state.memory[fromAddr];
 }

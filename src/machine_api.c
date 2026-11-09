@@ -56,6 +56,7 @@ void reset_machine() {
     // Certain input bits are always set
     set_input_port(0, 0b00001110);
     set_input_port(1, 0b00001000);
+    machine.nextVBlankInt = 1;
 }
 
 // FIXME Need to handle the shift register somehow...this means machine-specific IN/OUT opcode handling
@@ -138,19 +139,82 @@ void key_release(Input inputType) {
     }
 }
 
+const double cyclePeriodMicros = 0.5;
+const long clocksPerMicro = CLOCKS_PER_SEC / 1'000'000;
+const long clocksPerVBlank = CLOCKS_PER_SEC / 60;
+
 void run_machine() {
-    if (machine.lastVBlank == 0) {
-        machine.lastVBlank = clock();
+    // Handle the interrupts generated at the middle and end of V-Blank
+    const long now = clock();
+    if (machine.lastOp == 0) {
+        machine.lastOp = now;
+        machine.nextVBlankInt = machine.lastOp + clocksPerVBlank;
+        machine.interruptNum = 1;
     }
-    run();
-    const bool vblankInterrupt = (clock() - machine.lastVBlank) > (displayParams.refreshInterval * CLOCKS_PER_SEC);
-    if (vblankInterrupt) {
-        interrupt(0xD7);  // RST 2
-        machine.lastVBlank = clock();
+
+    if (now > machine.nextVBlankInt) {
+        if (now > machine.nextVBlankInt && machine.interruptNum == 1) {
+            // Mid-vblank
+            interrupt(0b11001111);  // RST 1
+            machine.interruptNum = 2;
+        } else {
+            // End of vblank
+            interrupt(0b11010111);  // RST 2
+            machine.interruptNum = 1;
+        }
+        machine.nextVBlankInt = now + clocksPerVBlank / 2;
     }
+
+    // Because our processor operates at a different speed than the real 8080, we have to synchronise our loops based on the 
+    // cycle times of the intrustions, otherwise the game will run weirdly
+    const long clocksPassed = now - machine.lastOp;
+    const long cyclesToCatchUp = (clocksPassed / clocksPerMicro) / cyclePeriodMicros;   // The 8080 is a 2MHz processor, ie. one cycle is 0.5 microseconds
+    long cycles = 0;
+
+    while (cyclesToCatchUp > cycles) {
+        if (state.memory[state.programCounter] == 0xDB) {
+            // Machine-specific IN
+            uint8_t devNumber = state.memory[state.programCounter + 1];
+            switch(devNumber) {
+                case 0:
+                    state.A = 1;
+                    break;
+                case 1:
+                    state.A = 0;
+                    break;
+                case 3:
+                    uint16_t value = (machine.shift1 << 8) | machine.shift0;
+                    state.A = ((value >> (8 - machine.shiftOffset)) & 0xFF);
+                    break;
+                default:
+                    state.A = 0;
+                    break;
+            }
+            state.programCounter += 2;
+            cycles += 3;
+        } else if (state.memory[state.programCounter] == 0xD3) {
+            // Machine-specific OUT
+            uint8_t devNumber = state.memory[state.programCounter + 1];
+            switch(devNumber) {
+                case 2:
+                    machine.shiftOffset = state.A & 0x7;
+                    break;
+                case 4:
+                    machine.shift0 = machine.shift1;
+                    machine.shift1 = state.A;
+                    break;
+            }
+
+            state.programCounter += 2;
+            cycles += 3;
+        } else {
+            cycles += run();
+        }
+    }
+    machine.lastOp = now;
 }
 
-const uint8_t* const graphics_state() {
+const void* const graphics_state() {
     return read_memory(0x2400);
 }
 

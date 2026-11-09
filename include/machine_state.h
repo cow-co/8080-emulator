@@ -4,8 +4,13 @@
 #include "emulator_state.h"
 
 typedef struct {
-    uint16_t shift; // Space invaders has an extra register for multi-bit shifts
-    long lastVBlank;
+    // Space invaders has an extra register for multi-bit shifts
+    uint8_t shift0;
+    uint8_t shift1;
+    uint8_t shiftOffset;
+    uint8_t interruptNum;
+    long nextVBlankInt;
+    long lastOp;
 } SpaceInvadersCabinet;
 
 extern SpaceInvadersCabinet machine;

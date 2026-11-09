@@ -34,8 +34,6 @@ typedef struct {
 
     uint8_t outputData[UINT8_MAX + 1];
     uint8_t inputData[UINT8_MAX + 1];
-
-    long lastOpEndsAt;
 } State;
 
 extern State state;
