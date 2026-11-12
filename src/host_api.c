@@ -45,14 +45,14 @@ void run_simulation() {
         run_machine();
         
         // Render
-        const bool* const framebuffer = graphics_state();
-        for (size_t y = 0; y < displayParams.pixelsHeight; ++y) {
-            for (size_t x = 0; x < displayParams.pixelsWidth; ++x) {
-                if (framebuffer[y * displayParams.pixelsWidth + x]) {
-                    ImageDrawPixel(&displayImage, x, displayParams.pixelsHeight-y, pixColourOn);
-                } else {
-                    ImageDrawPixel(&displayImage, x, displayParams.pixelsHeight-y, pixColourOff);
-                }
+        const uint8_t* const framebuffer = graphics_state();
+        for (size_t x = 0; x < displayParams.pixelsWidth; ++x) {
+            for (size_t y = 0; y < displayParams.pixelsHeight; ++y) {
+                // Which byte does the pixel live in?
+                const uint8_t pixelByte = framebuffer[(x * (displayParams.pixelsHeight / displayParams.pixelsPerByte)) + y / 8];
+                const uint8_t bitInByte = (x * displayParams.pixelsHeight + y) % displayParams.pixelsPerByte;
+                const bool pixelValue = pixelByte & (1 << bitInByte);
+                ImageDrawPixel(&displayImage, x, displayParams.pixelsHeight - y, pixelValue ? pixColourOn : pixColourOff);
             }
         }
         UpdateTexture(displayTexture, displayImage.data);
