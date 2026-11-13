@@ -72,28 +72,28 @@ void run_simulation() {
 
         // Input
         // Unset any released keys
-        if (IsKeyUp(KEY_ENTER)) {
+        if (IsKeyReleased(KEY_ENTER)) {
             key_release(P1_START);
         }
-        if (IsKeyUp(KEY_D)) {
+        if (IsKeyReleased(KEY_D)) {
             key_release(P1_RIGHT);
         }
-        if (IsKeyUp(KEY_A)) {
+        if (IsKeyReleased(KEY_A)) {
             key_release(P1_LEFT);
         }
-        if (IsKeyUp(KEY_SPACE)) {
+        if (IsKeyReleased(KEY_SPACE)) {
             key_release(P1_SHOOT);
         }
-        if (IsKeyUp(KEY_KP_ENTER)) {
+        if (IsKeyReleased(KEY_KP_ENTER)) {
             key_release(P2_START);
         }
-        if (IsKeyUp(KEY_RIGHT)) {
+        if (IsKeyReleased(KEY_RIGHT)) {
             key_release(P2_RIGHT);
         }
-        if (IsKeyUp(KEY_LEFT)) {
+        if (IsKeyReleased(KEY_LEFT)) {
             key_release(P2_LEFT);
         }
-        if (IsKeyUp(KEY_KP_0)) {
+        if (IsKeyReleased(KEY_KP_0)) {
             key_release(P2_SHOOT);
         }
         if(IsKeyReleased(KEY_PAUSE)) {
@@ -101,29 +101,29 @@ void run_simulation() {
         }
 
         // Set any pressed keys
-        if (IsKeyDown(KEY_ENTER)) {
+        if (IsKeyPressed(KEY_ENTER)) {
             key_press(P1_START);
         }
-        if (IsKeyDown(KEY_D)) {
+        if (IsKeyPressed(KEY_D)) {
             key_press(P1_RIGHT);
         }
-        if (IsKeyDown(KEY_A)) {
+        if (IsKeyPressed(KEY_A)) {
             key_press(P1_LEFT);
         }
-        if (IsKeyDown(KEY_SPACE)) {
+        if (IsKeyPressed(KEY_SPACE)) {
             key_press(P1_SHOOT);
         }
 
-        if (IsKeyDown(KEY_RIGHT)) {
+        if (IsKeyPressed(KEY_RIGHT)) {
             key_press(P2_RIGHT);
         }
-        if (IsKeyDown(KEY_KP_ENTER)) {
+        if (IsKeyPressed(KEY_KP_ENTER)) {
             key_press(P2_START);
         }
-        if (IsKeyDown(KEY_LEFT)) {
+        if (IsKeyPressed(KEY_LEFT)) {
             key_press(P2_LEFT);
         }
-        if (IsKeyDown(KEY_KP_0)) {
+        if (IsKeyPressed(KEY_KP_0)) {
             key_press(P2_SHOOT);
         }
         if(IsKeyPressed(KEY_PAUSE)) {
