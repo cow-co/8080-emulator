@@ -59,8 +59,6 @@ void reset_machine() {
     machine.nextVBlankInt = 1;
 }
 
-// FIXME Need to handle the shift register somehow...this means machine-specific IN/OUT opcode handling
-
 void key_press(Input inputType) {
     switch (inputType)
     {
@@ -180,7 +178,7 @@ void run_machine() {
                     state.A = 1;
                     break;
                 case 1:
-                    state.A = 0;
+                    state.A = state.inputData[1];
                     break;
                 case 3:
                     uint16_t value = (machine.shift1 << 8) | machine.shift0;

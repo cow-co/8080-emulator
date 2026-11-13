@@ -50,3 +50,6 @@ Generating interrupt 215
 - With some help from the Emulator101 code, I have it...ish-working in demo mode?!
   - what I have is like, eight mini-versions of space invaders, rendered sideways, on the screen.
   - But it's there!
+- Worked through the rendering code some more, chucked out the Emulator101 parts of it (which didn't really fit with how my code worked) and we have space invaders demo!
+
+![alt text](image-1.png)

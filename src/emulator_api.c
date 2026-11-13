@@ -8,10 +8,6 @@ const size_t countOpcodes = sizeof(opcodes) / sizeof(Opcode);
 bool enableTrace = false;
 
 const uint8_t run() {
-    if (state.programCounter == 0x081F) {
-        printf("Gameloop\n");
-    }
-
     const uint8_t* const code = &state.memory[state.programCounter];
     if (*code >= countOpcodes) {
         printf("ERROR: Could not find opcode %04hhu!\n", *code);

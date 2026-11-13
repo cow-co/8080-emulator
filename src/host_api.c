@@ -4,15 +4,6 @@
 #include <stddef.h>
 #include <stdio.h>
 
-
-bool generate_pixel_value(const uint8_t x, const uint8_t y, const uint8_t* const buffer) {
-    const uint8_t pixelOffset = x * displayParams.pixelsHeight + y;
-    const uint8_t byteOffset = pixelOffset / displayParams.pixelsPerByte;
-    const uint8_t remainder = pixelOffset % displayParams.pixelsPerByte;
-    const uint8_t byteValue = buffer[byteOffset];
-    return ((byteValue >> remainder) & 0x1);
-}
-
 void run_simulation() {
     reset_machine();
     load_rom();
@@ -45,11 +36,14 @@ void run_simulation() {
         run_machine();
         
         // Render
-        const uint8_t* const framebuffer = graphics_state();
+        // Rendering for space invaders is a little whack, because it uses 8-bit bytes for storage, but 
+        // the pixels are only 1 bit each
+        const uint8_t* const framebuffer = (uint8_t*)graphics_state();
         for (size_t x = 0; x < displayParams.pixelsWidth; ++x) {
             for (size_t y = 0; y < displayParams.pixelsHeight; ++y) {
                 // Which byte does the pixel live in?
-                const uint8_t pixelByte = framebuffer[(x * (displayParams.pixelsHeight / displayParams.pixelsPerByte)) + y / 8];
+                const uint8_t pixelByte = framebuffer[(x * (displayParams.pixelsHeight / displayParams.pixelsPerByte)) + y / displayParams.pixelsPerByte];
+                // Which bit is the pixel, within that byte?
                 const uint8_t bitInByte = (x * displayParams.pixelsHeight + y) % displayParams.pixelsPerByte;
                 const bool pixelValue = pixelByte & (1 << bitInByte);
                 ImageDrawPixel(&displayImage, x, displayParams.pixelsHeight - y, pixelValue ? pixColourOn : pixColourOff);
@@ -102,7 +96,7 @@ void run_simulation() {
         if (IsKeyUp(KEY_KP_0)) {
             key_release(P2_SHOOT);
         }
-        if(IsKeyUp(KEY_PAUSE)) {
+        if(IsKeyReleased(KEY_PAUSE)) {
             key_release(COIN_INSERT);
         }
 
@@ -132,7 +126,7 @@ void run_simulation() {
         if (IsKeyDown(KEY_KP_0)) {
             key_press(P2_SHOOT);
         }
-        if(IsKeyDown(KEY_PAUSE)) {
+        if(IsKeyPressed(KEY_PAUSE)) {
             key_press(COIN_INSERT);
         }
     }
