@@ -91,25 +91,25 @@ void test_stackOps() {
     // Testing one of each should be sufficient, since they all call to the main
     // push/pop implementation
     reset_state();
-    state.stackPointer = 0x13A6;
+    state.stackPointer = 0x33A6;
     state.B = 0x6A;
     state.C = 0x30;
     push_b(&state);
-    TEST_ASSERT_EQUAL_UINT16(0x13A4, state.stackPointer);
+    TEST_ASSERT_EQUAL_UINT16(0x33A4, state.stackPointer);
     TEST_ASSERT_EQUAL_UINT8(0x6A, state.B);
     TEST_ASSERT_EQUAL_UINT8(0x30, state.C);
-    TEST_ASSERT_EQUAL_UINT8(0x6A, state.memory[0x13A5]);
-    TEST_ASSERT_EQUAL_UINT8(0x30, state.memory[0x13A4]);
-    TEST_ASSERT_EQUAL_UINT8(0, state.memory[0x13A6]);
+    TEST_ASSERT_EQUAL_UINT8(0x6A, state.memory[0x33A5]);
+    TEST_ASSERT_EQUAL_UINT8(0x30, state.memory[0x33A4]);
+    TEST_ASSERT_EQUAL_UINT8(0, state.memory[0x33A6]);
 
     reset_state();
-    state.stackPointer = 0x1508;
-    state.memory[0x1508] = 0x33;
-    state.memory[0x1509] = 0x0B;
+    state.stackPointer = 0x2508;
+    state.memory[0x2508] = 0x33;
+    state.memory[0x2509] = 0x0B;
     state.H = 0xFF;
     state.L = 0xFF;
     pop_h(&state);
-    TEST_ASSERT_EQUAL_UINT16(0x150A, state.stackPointer);
+    TEST_ASSERT_EQUAL_UINT16(0x250A, state.stackPointer);
     TEST_ASSERT_EQUAL_UINT8(0x0B, state.H);
     TEST_ASSERT_EQUAL_UINT8(0x33, state.L);
 }
@@ -484,8 +484,8 @@ void test_utils() {
     reset_state();
     write_memory(&state, 0, 1);
     TEST_ASSERT_EQUAL_UINT8(0, state.memory[0]);
-    write_memory(&state, 2048, 1);
-    TEST_ASSERT_EQUAL_UINT8(1, state.memory[2048]);
+    write_memory(&state, 0x2001, 1);
+    TEST_ASSERT_EQUAL_UINT8(1, state.memory[0x2001]);
 
     reset_state();
     set_bit_on_input_port(0, 0);

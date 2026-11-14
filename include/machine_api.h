@@ -35,6 +35,6 @@ void key_press(Input inputType);
 void key_release(Input inputType);
 void run_machine();
 const void queued_sfx();
-const uint8_t* const graphics_state();
+const void* const graphics_state();
 
 #endif

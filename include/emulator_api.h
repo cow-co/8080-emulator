@@ -7,7 +7,7 @@
 /**
  * Runs one iteration (one instruction) of the emulator
  */
-void run();
+const uint8_t run();
 
 /**
  * NOTE: Call_er_ closes the file pointer
@@ -26,7 +26,7 @@ void unset_bit_on_input_port(const uint8_t port, const uint8_t bit);
 void set_input_port(const uint8_t port, const uint8_t value);
 void unset_input_port(const uint8_t port);
 const uint8_t read_output_port(const uint8_t port);
-const uint8_t* const read_memory(const uint16_t fromAddr);
+const void* const read_memory(const uint16_t fromAddr);
 
 extern const double cyclePeriodMicros;
 

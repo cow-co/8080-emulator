@@ -4,13 +4,6 @@
 #include <stddef.h>
 #include <stdio.h>
 
-
-bool generate_pixel_value(const uint8_t x, const uint8_t y, const uint8_t* const buffer) {
-    const uint8_t pixelOffset = x * displayParams.pixelsHeight + y;    // eg. 256
-    const bool* const bufferAsBits = (bool*)buffer;
-    return bufferAsBits[pixelOffset];
-}
-
 void run_simulation() {
     reset_machine();
     load_rom();
@@ -31,6 +24,7 @@ void run_simulation() {
     
     for (size_t i = 0; i < sizeof(sfxFiles) / sizeof(sfxFiles[0]); ++i) {
         sfxes[i] = LoadSound(sfxFiles[i]);
+        printf("Loaded sound %zu\n", i);
     }
 
     Image displayImage = GenImageColor(displayParams.pixelsWidth, displayParams.pixelsHeight, BLACK);
@@ -43,11 +37,17 @@ void run_simulation() {
         run_machine();
         
         // Render
-        const uint8_t* const framebuffer = graphics_state();
+        // Rendering for space invaders is a little whack, because it uses 8-bit bytes for storage, but 
+        // the pixels are only 1 bit each
+        const uint8_t* const framebuffer = (uint8_t*)graphics_state();
         for (size_t x = 0; x < displayParams.pixelsWidth; ++x) {
             for (size_t y = 0; y < displayParams.pixelsHeight; ++y) {
-                const bool pixelValue = generate_pixel_value(x, y, framebuffer);
-                ImageDrawPixel(&displayImage, x, y, pixelValue ? pixColourOn : pixColourOff);
+                // Which byte does the pixel live in?
+                const uint8_t pixelByte = framebuffer[(x * (displayParams.pixelsHeight / displayParams.pixelsPerByte)) + y / displayParams.pixelsPerByte];
+                // Which bit is the pixel, within that byte?
+                const uint8_t bitInByte = (x * displayParams.pixelsHeight + y) % displayParams.pixelsPerByte;
+                const bool pixelValue = pixelByte & (1 << bitInByte);
+                ImageDrawPixel(&displayImage, x, displayParams.pixelsHeight - y, pixelValue ? pixColourOn : pixColourOff);
             }
         }
         UpdateTexture(displayTexture, displayImage.data);
@@ -66,68 +66,68 @@ void run_simulation() {
         }
 
         for (size_t i = 0; i < sizeof(sfxFiles) / sizeof(sfxFiles[0]); ++i) {
-            if (sfxStates[i]) {
+            if (sfxStates[i] && !IsSoundPlaying(sfxes[i])) {
                 PlaySound(sfxes[i]);
             }
         }
 
         // Input
         // Unset any released keys
-        if (IsKeyUp(KEY_ENTER)) {
+        if (IsKeyReleased(KEY_ENTER)) {
             key_release(P1_START);
         }
-        if (IsKeyUp(KEY_D)) {
+        if (IsKeyReleased(KEY_D)) {
             key_release(P1_RIGHT);
         }
-        if (IsKeyUp(KEY_A)) {
+        if (IsKeyReleased(KEY_A)) {
             key_release(P1_LEFT);
         }
-        if (IsKeyUp(KEY_SPACE)) {
+        if (IsKeyReleased(KEY_SPACE)) {
             key_release(P1_SHOOT);
         }
-        if (IsKeyUp(KEY_KP_ENTER)) {
+        if (IsKeyReleased(KEY_KP_ENTER)) {
             key_release(P2_START);
         }
-        if (IsKeyUp(KEY_RIGHT)) {
+        if (IsKeyReleased(KEY_RIGHT)) {
             key_release(P2_RIGHT);
         }
-        if (IsKeyUp(KEY_LEFT)) {
+        if (IsKeyReleased(KEY_LEFT)) {
             key_release(P2_LEFT);
         }
-        if (IsKeyUp(KEY_KP_0)) {
+        if (IsKeyReleased(KEY_KP_0)) {
             key_release(P2_SHOOT);
         }
-        if(IsKeyUp(KEY_PAUSE)) {
+        if(IsKeyReleased(KEY_PAUSE)) {
             key_release(COIN_INSERT);
         }
 
         // Set any pressed keys
-        if (IsKeyDown(KEY_ENTER)) {
+        if (IsKeyPressed(KEY_ENTER)) {
             key_press(P1_START);
         }
-        if (IsKeyDown(KEY_D)) {
+        if (IsKeyPressed(KEY_D)) {
             key_press(P1_RIGHT);
         }
-        if (IsKeyDown(KEY_A)) {
+        if (IsKeyPressed(KEY_A)) {
             key_press(P1_LEFT);
         }
-        if (IsKeyDown(KEY_SPACE)) {
+        if (IsKeyPressed(KEY_SPACE)) {
             key_press(P1_SHOOT);
         }
 
-        if (IsKeyDown(KEY_RIGHT)) {
+        if (IsKeyPressed(KEY_RIGHT)) {
             key_press(P2_RIGHT);
         }
-        if (IsKeyDown(KEY_KP_ENTER)) {
+        if (IsKeyPressed(KEY_KP_ENTER)) {
             key_press(P2_START);
         }
-        if (IsKeyDown(KEY_LEFT)) {
+        if (IsKeyPressed(KEY_LEFT)) {
             key_press(P2_LEFT);
         }
-        if (IsKeyDown(KEY_KP_0)) {
+        if (IsKeyPressed(KEY_KP_0)) {
             key_press(P2_SHOOT);
         }
-        if(IsKeyDown(KEY_PAUSE)) {
+        if(IsKeyPressed(KEY_PAUSE)) {
             key_press(COIN_INSERT);
         }
     }

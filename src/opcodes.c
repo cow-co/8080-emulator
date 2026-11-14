@@ -1585,7 +1585,7 @@ uint8_t rst(State* state, const uint8_t exp) {
     write_memory(state, state->stackPointer - 1, (state->programCounter >> 8));
     write_memory(state, state->stackPointer - 2, (state->programCounter & 0xFF));
     state->stackPointer -= 2;
-    state->programCounter = (uint16_t)(exp ^ 0b11000111);
+    state->programCounter = (uint16_t)(exp << 3);   // eg. RST 2 --> exp = 2 = 0b00000010 --> PC = 0b00010000 = 16 = 0x0010
     return 11;
 }
 
@@ -1645,12 +1645,12 @@ uint8_t in(State* state) {
     uint8_t devNumber = state->memory[state->programCounter + 1];
     state->A = state->inputData[devNumber];
     state->programCounter += 2;
-    return 10;
+    return 3;
 }
 
 uint8_t out(State* state) {
     uint8_t devNumber = state->memory[state->programCounter + 1];
     state->outputData[devNumber] = state->A;
     state->programCounter += 2;
-    return 10;
+    return 3;
 }
