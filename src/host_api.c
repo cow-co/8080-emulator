@@ -24,6 +24,7 @@ void run_simulation() {
     
     for (size_t i = 0; i < sizeof(sfxFiles) / sizeof(sfxFiles[0]); ++i) {
         sfxes[i] = LoadSound(sfxFiles[i]);
+        printf("Loaded sound %zu\n", i);
     }
 
     Image displayImage = GenImageColor(displayParams.pixelsWidth, displayParams.pixelsHeight, BLACK);
@@ -65,7 +66,7 @@ void run_simulation() {
         }
 
         for (size_t i = 0; i < sizeof(sfxFiles) / sizeof(sfxFiles[0]); ++i) {
-            if (sfxStates[i]) {
+            if (sfxStates[i] && !IsSoundPlaying(sfxes[i])) {
                 PlaySound(sfxes[i]);
             }
         }

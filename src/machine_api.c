@@ -201,6 +201,9 @@ void run_machine() {
                     machine.shift0 = machine.shift1;
                     machine.shift1 = state.A;
                     break;
+                default:
+                    state.outputData[devNumber] = state.A;
+                    break;
             }
 
             state.programCounter += 2;
