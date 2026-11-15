@@ -23,43 +23,20 @@
 There are effectively three layers to the software stack here:
 
 - The emulator itself (in `opcodes`, `processor`, and `state`): this represents the 8080 itself, as well as the memory to which it communicates
-- The "machine" code, which represents the machine into which the 8080/memory hardware was incorporated (in the example provided, this is a SPace Invaders arcade cabinet)
+- The "machine" code, which represents the machine into which the 8080/memory hardware was incorporated (in the example provided, this is a Space Invaders arcade cabinet)
 - The "host" code, which handles the input/output from/to the actual real hardware on which our emulator is running. This is the layer that (for example) reads a keyboard press, and converts that to a "shoot gun" input in the machine layer.
 
 If other arcade machines used the same setup as Space Invaders, then you could incorporate them simply by creating some new code at the machine layer. Machines with different numbers/types of input would require changes to both the machine and host layers, since the API from the machine layer will change.
 
-The APIs exposed by each layer, that are relevant to the layer(s) above, are outlined below.
 
-### Emulator Layer API
+## How to Incorporate a Different "Emulated System"
 
-Functions exposed:
+If you want to build a representation of a different 8080-based system (ie. other than Space Invaders), you will generally need to change the emulator and host layers:
 
-- `run()`: Executes the code loaded into memory. Alternatively: generates a disassembly of the binary.
-- `load_binary()`: Loads a binary file into memory. _Caller_ closes the file pointer!
-- `reset_state()`: Resets the state of the 8080 and memory.
-- `interrupt()`
-- `set_bit_on_input_port()`
-- `set_input_port()`
-- `unset_bit_on_input_port()`
-- `unset_input_port()`
-- `read_output_port()`
-- `read_memory()`
-- `cyclePeriodMicros`
-
-### Machine Layer API
-
-This layer exposes any input and output functions required for the machine hardware being emulated. In the bundled example, this is a Space Invaders arcade cabinet. All implementations, however, should expose:
-- `load_rom()`: Handles loading the ROM files for the specific executable we are emulating.
-- `key_press()`: When a binary input  (eg. a button) is activated.
-- `key_release()`: When a binary input  (eg. a button) is deactivated.
-- `reset_machine()`: Sets the machine back to an initial state
-- `run_machine()`: Runs one iteration of the machine simulation
-- `queued_sfx()`: Gets the ID of any queued sound effects for the host layer to play.
-- An enumeration of supported inputs for passing in to the `key_press()` and `key_release()` functions.
-- An array of sound file paths.
-- An enumeration of sound types that are supported, these should index into the abovementioned sound file array.
-- An instance of `DisplayParams`, describing the parameters of the display for the machine (eg. the Space Invaders display was 224 * 220, with one-byte pixels, and a 60Hz refresh rate).
-- `graphics_state()`: Returning a pointer to the buffer containing the raw pixel data to be rendered. Note that this _may not_ be a direct pass-through from the emulator memory in cases where the memory layout is not representative of what should be displayed (eg. the display in Space Invaders was rotated by 90 degrees in the cabinet). This returns a pointer to `uint8_t` so that we can be very clear about the size of the bytes (`unsigned char` is not _required_ to be 8 bits).
-
-### Host Layer API
-
+- At the emulator layer:
+  - You will need to define a machine state `struct` (see `machine_state.h`) to represent the state of the overall machine, including any bespoke memory/processing hardware that it has beyond the basic 8080. This will include your own implementation of the `reset_machine()` function.
+  - Define a `DisplayParams` instance, which helps the host layer define window dimensions and such.
+  - Define any input and output types that might be needed, as well as functions to handle them (see `machine_api.h` for inspiration).
+  - Implement a run loop `run_machine()` as well as `queued_sfx()` to update the current sounds that should play, and `graphics_state()` to retrieve the framebuffer.
+- At the host layer:
+  - Make any changes that might be necessary to accommodate the changes you made at the machine layer (eg. changing how SFX are handled).
